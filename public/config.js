@@ -4,7 +4,7 @@ const environment = 'development'; // 'development' or 'production'
 
 const URLS = {
   development: "http://localhost:5000",
-  production: "https://smart-cart-app-h47v.onrender.com"
+  production: "https://smartcart-2lvm.onrender.com"
 };
 
 const BASE_URL = URLS[environment];
