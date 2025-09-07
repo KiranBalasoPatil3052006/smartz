@@ -1,10 +1,8 @@
 // config.js
-// Change 'environment' to 'production' when deploying to Render
-const environment = 'development'; // 'development' or 'production'
+// ✅ Auto-detect environment (local or Render)
 
-const URLS = {
-  development: "http://localhost:5000",
-  production: "https://smartz.onrender.com"
-};
+const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
-const BASE_URL = URLS[environment];
+const BASE_URL = isLocalhost
+  ? "http://localhost:5000"         // Local backend
+  : "https://smartz.onrender.com";  // Render backend
