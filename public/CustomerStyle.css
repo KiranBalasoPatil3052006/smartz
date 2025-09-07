@@ -1,0 +1,363 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #ffe3c2;
+    overflow-x: hidden;
+}
+
+/* ===== Hamburger Menu ===== */
+.menu-toggle {
+    cursor: pointer;
+    z-index: 1001;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.menu-toggle span {
+    display: block;
+    width: 24px;
+    height: 3px;
+    background-color: #fff;   /* ✅ changed to pure white */
+    margin: 4px 0;
+    border-radius: 2px;
+    transition: 0.4s;
+    transform-origin: center;
+}
+
+/* Cross (X) animation */
+.menu-toggle.open span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.menu-toggle.open span:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.open span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* ===== Sidebar ===== */
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    left: -200px;
+    width: 200px;
+    height: 100%;
+    background-color: #350410de;
+    color: #ffffffde;
+    font-size: 1rem;
+    font-weight: 600;
+    padding-top: 60px;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    padding: 15px 20px;
+    cursor: pointer;
+}
+
+nav.active {
+    left: 0;
+}
+
+/* ===== Header ===== */
+.heading {
+    background-color: #350410de;
+    height: 60px;
+    color: white;
+    padding-top: 14px;
+    margin: 0;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/* ===== Page Layout ===== */
+.page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 600px;
+}
+
+th, td {
+    border: 3px solid #350410de;
+    padding: 6px;
+    text-align: center;
+    font-size: 1rem;
+    word-wrap: break-word;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+/* ===== Scanner ===== */
+#scanner-container {
+    margin-top: 20px;
+    display: none;
+    height: fit-content;
+    height: 50px;
+    width: 250px;
+    margin-bottom: 230px;
+}
+
+#video {
+    padding: 0px;
+    height: 300px;
+    border: 2px solid #350410de;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* ===== List Content ===== */
+.list-content {
+    margin-top: 10px;
+}
+
+#scan-btn:hover,
+#online-btn:hover,
+#cash-btn:hover,
+#stop-scan-btn:hover {
+    background-color: #fff;
+    color: #350410de;
+    border: 2px solid #350410de;
+}
+
+.list-head {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #350410de;
+}
+
+/* ===== Buttons ===== */
+#cash-btn,
+#online-btn,
+#scan-btn,
+#stop-scan-btn {
+    background-color: #350410de;
+    color: white;
+    border: 2px solid #350410de;
+    font-weight: 600;
+    border-radius: 9px;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    padding: 10px 20px;
+    margin: 5px 0;
+}
+
+.payment-buttons {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 10px;
+}
+
+.scan-buttons {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 10px;
+}
+
+/* ===== Quantity Controls ===== */
+.qty-btn {
+    margin: 0 4px;
+    padding: 4px 8px;
+    font-size: 1rem;
+    border-radius: 4px;
+    border: 1px solid #350410de;
+    background-color: white;
+    color: #350410de;
+    cursor: pointer;
+}
+
+.qty-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.qty-value {
+    min-width: 20px;
+    text-align: center;
+}
+
+/* ===== Table Column Widths ===== */
+td:nth-child(1) { width: 150px; }
+td:nth-child(2) { width: 200px; }
+td:nth-child(3) { width: 100px; }
+td:nth-child(4) { width: 150px; }
+td:nth-child(5) { width: 100px; }
+td:nth-child(6) { width: 120px; }
+
+.drawingBuffer {
+    display: none;
+}
+
+/* ===== Customer Info Box ===== */
+.customer-info {
+    margin-bottom: 20px;
+    background: #fff;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.customer-info input {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 2px solid #350410de;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.customer-info label {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+/* ===== Verification Section ===== */
+#verify-section {
+    background-color: #fff8f2;
+    border: 2px solid #350410;
+    border-radius: 10px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    margin: 30px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+#verify-section label {
+    display: block;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #350410;
+}
+
+#verify-section input[type="text"] {
+    width: 80%;
+    padding: 10px;
+    border: 2px solid #350410;
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    outline: none;
+}
+
+#verify-section button {
+    background-color: #350410;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    margin: 0 10px;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#verify-section button:hover {
+    background-color: #5a1a15;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    nav {
+        width: 200px;
+        left: -100%;
+        transition: left 0.3s ease;
+    }
+
+    nav.active {
+        left: 0;
+    }
+
+    .page {
+        margin-left: 0;
+        padding: 10px;
+    }
+
+    table {
+        width: 100%;
+        font-size: 0.9rem;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    .list-head {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    #cash-btn,
+    #online-btn,
+    #scan-btn,
+    #stop-scan-btn {
+        font-size: 0.9rem;
+        width: 100%;
+        margin: 5px 0;
+        padding: 10px;
+    }
+
+    #scanner-container {
+        margin: 10px;
+        margin-bottom: 180px;
+        flex-direction: column;
+        width: 90%;
+    }
+
+    #video {
+        width: 100%;
+        max-width: 100%;
+        height: 200px;
+    }
+
+    .jsPDF {
+        font-size: 0.8rem;
+    }
+}

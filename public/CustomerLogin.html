@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Cart Login</title>
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f2e6d7;
+      font-size: larger;
+      font-weight: 400;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 700px;
+
+    }
+
+    .container {
+      width: 100%;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      margin-top: -80px;
+    }
+
+
+
+    .login-container {
+      background-color: #fff;
+      padding: 40px 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid #d4c1aa;
+      width: 400px;
+    }
+
+    .form-heading {
+      text-align: center;
+      color: #350410;
+      font-weight: 600;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      color: #3d2c29;
+      font-weight: bold;
+      display: block;
+      text-align: left;
+      margin-top: 10px;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"] {
+      width: 100%;
+      height: 35px;
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #fdf9f3;
+      margin: 8px;
+    }
+
+    .user-login {
+      width: 100%;
+      height: 50px;
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #350410;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .user-login:hover {
+      background-color: #5b2718;
+    }
+
+    .admin-link {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #8b5e3c;
+      text-align: center;
+
+    }
+
+    .admin-link a {
+      color: #350410;
+      text-decoration: none;
+      font-weight: bold;
+
+    }
+
+    .admin-link a:hover {
+      text-decoration: underline;
+    }
+
+    #messageBox {
+      margin-top: 10px;
+      font-size: 18px;
+      color: red;
+      font-weight: bold;
+    }
+
+    @media (max-width: 480px) {
+      .form-heading {
+        font-size: 20px;
+      }
+
+      .user-login {
+        font-size: 14px;
+        height: 36px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <img src="images/cartimage.png" alt="Smart Cart Logo" width="200" height="200">
+
+    <div class="login-container">
+      <form onsubmit="check(); return false;">
+        <div class="form-heading">Customer Signin</div>
+
+        <label for="name">Name:</label>
+        <input type="text" name="name" id="name" />
+
+        <label for="number">Mobile Number:</label>
+        <input type="tel" name="number" id="number" />
+
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" />
+
+        <input type="submit" class="user-login" value="Submit" />
+
+        <div class="admin-link">
+          Are you admin? <a href="adminlogin.html">Click here</a>
+        </div>
+
+        <div id="messageBox"></div>
+      </form>
+    </div>
+  </div>
+  <script src="config.js"></script>
+  <script>
+    function check() {
+      const name = document.getElementById("name").value.trim();
+      const number = document.getElementById("number").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const messageBox = document.getElementById("messageBox");
+
+      messageBox.textContent = "";
+      messageBox.style.color = "red";
+
+      if (!name || !number || !email) {
+        messageBox.textContent = "⚠️ All fields are required!";
+        return;
+      }
+
+      if (!/^\d{10}$/.test(number)) {
+        messageBox.textContent = "⚠️ Mobile number must be 10 digits only!";
+        return;
+      }
+
+      localStorage.setItem("customerName", name);
+      localStorage.setItem("customerNumber", number);
+      localStorage.setItem("customerEmail", email);
+
+      fetch(`${BASE_URL}/customer`, {   // <-- using BASE_URL from config.js
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, mobile: number, email })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            messageBox.style.color = "green";
+            messageBox.textContent = "✅ Login successful! Redirecting...";
+            setTimeout(() => window.location.href = "customer.html", 1000);
+          } else {
+            messageBox.textContent = "❌ Error saving customer info!";
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          messageBox.textContent = "❌ Something went wrong!";
+        });
+    }
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Cart</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
+  <link rel="stylesheet" href="CustomerStyle.css">
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+
+  <style>
+
+  </style>
+</head>
+
+<body>
+  <center>
+    <h1 class="heading">Smart Cart</h1>
+  </center>
+
+  <div class="container">
+    <div>
+      <div class="menu-toggle" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </div>
+      <nav id="sideMenu">
+        <ul>
+          <li>Home</li>
+          <li>About Us</li>
+          <li>Contact</li>
+          <li onclick="MovetoExit()">Exit</li>
+        </ul>
+      </nav>
+    </div>
+    <div class="page">
+      <!-- Example section at the top of customer.html -->
+      <div id="customer-info"
+        style="border-radius: 10px; font-size: 1.1rem; font-weight: 500; color: #350410;border: #350410 2px solid;">
+        <table style="background-color: white; border-radius: 10px; border: none; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 6px 12px; border: none;"><strong>Name:</strong></td>
+            <td style="padding: 6px 12px; border: none;"><span id="cust-name"></span></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 12px; border: none;"><strong>Mobile:</strong></td>
+            <td style="padding: 6px 12px; border: none;"><span id="cust-mobile"></span></td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 12px; border: none;"><strong>Email:</strong></td>
+            <td style="padding: 6px 12px; border: none;"><span id="cust-email"></span></td>
+          </tr>
+        </table>
+      </div>
+
+      <div id="scanner-container" style="display: none;">
+        <video id="video" width="100%" autoplay></video>
+      </div>
+      <div class="list-content">
+        <h3 class="list-head">Product List</h3>
+        <table id="product-table" style=" border-radius: 10px; border: none; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Sno</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Total</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="product-list"></tbody>
+        </table>
+        <h3 class="list-head">Total: ₹<span id="total-amount">0.00</span></h3>
+        <div class="scan-buttons">
+          <button id="scan-btn">Start Scanning Product</button>
+          <button id="stop-scan-btn" style="display: none;">Stop Scanning</button>
+        </div>
+        <div id="cashier-code-section" style="display: none;">
+          <label for="cashier-code">Enter Cashier Code:</label>
+          <input type="text" id="cashier-code" placeholder="Cashier Code" required />
+        </div>
+
+        <div class="payment-buttons" id="payment-buttons" style="display: none;">
+          <button onclick="handleCashPay()" id="cash-btn">Cash Pay</button>
+          <button onclick="handleOnlinePay()" id="online-btn">Online Pay</button>
+        </div>
+
+        <!-- Message box -->
+        <div id="messageBox"></div>
+      </div>
+
+      <!-- Cashier Verification Section -->
+      <div id="verify-section" style="display: none; margin-top: 20px;">
+        <label for="cashier-code">Enter Cashier Code:</label>
+        <input type="text" id="verify-cashier-code" placeholder="Cashier Code" required />
+        <button onclick="verifyCashierCodeAndDownload()">Verify</button>
+        <button onclick="backToProductList()">Back</button>
+      </div>
+    </div>
+  </div>
+  <script src="config.js"></script>
+
+  <script>
+    // customer.js
+
+    // Get BASE_URL from config.js
+    const BASE_URL = window.BASE_URL || "http://localhost:5000";
+
+    // Load customer info from localStorage
+    const customerName = localStorage.getItem("customerName");
+    const customerNumber = localStorage.getItem("customerNumber");
+    const customerEmail = localStorage.getItem("customerEmail");
+
+    document.getElementById("cust-name").textContent = customerName || "Unknown";
+    document.getElementById("cust-mobile").textContent = customerNumber || "Unknown";
+    document.getElementById("cust-email").textContent = customerEmail || "Unknown";
+
+    const messageBox = document.getElementById("messageBox");
+
+    function showMessage(message, type) {
+      messageBox.textContent = message;
+      messageBox.className = "";
+      if (type === "success") messageBox.classList.add("success");
+      else messageBox.classList.add("error");
+    }
+
+    function MovetoExit() {
+      window.location.href = "CustomerLogin.html";
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById("sideMenu");
+      const toggle = document.querySelector(".menu-toggle");
+      menu.classList.toggle("active");
+      toggle.classList.toggle("open");
+    }
+
+    // Product scanning variables
+    const scannedProducts = {};
+    let lastScannedCode = null;
+    let scanCooldown = false;
+
+    const scanBtn = document.getElementById('scan-btn');
+    const stopScanBtn = document.getElementById('stop-scan-btn');
+    const scannerContainer = document.getElementById('scanner-container');
+    const productList = document.getElementById('product-list');
+
+    scanBtn.addEventListener('click', () => {
+      scannerContainer.style.display = 'block';
+      scanBtn.style.display = 'none';
+      stopScanBtn.style.display = 'inline-block';
+      startScanner();
+    });
+
+    stopScanBtn.addEventListener('click', () => {
+      stopScanner();
+      scannerContainer.style.display = 'none';
+      scanBtn.style.display = 'inline-block';
+      stopScanBtn.style.display = 'none';
+    });
+
+    function startScanner() {
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: document.querySelector('#scanner-container'),
+          constraints: { facingMode: "environment" }
+        },
+        decoder: {
+          readers: ["upc_reader", "ean_reader", "code_128_reader"]
+        }
+      }, function (err) {
+        if (err) { console.error("Scanner init error:", err); return; }
+        Quagga.start();
+      });
+
+      Quagga.onDetected(onDetectedHandler);
+    }
+
+    function stopScanner() {
+      Quagga.stop();
+      Quagga.offDetected(onDetectedHandler);
+    }
+
+    function onDetectedHandler(result) {
+      const code = result.codeResult.code;
+      if (scanCooldown || code === lastScannedCode) return;
+      scanCooldown = true;
+      lastScannedCode = code;
+      fetchProduct(code);
+      setTimeout(() => { scanCooldown = false; }, 1000);
+    }
+
+    function fetchProduct(barcode) {
+      fetch(`${BASE_URL}/product/${barcode}`)
+        .then(res => res.json())
+        .then(product => {
+          if (!product || !product.name) return;
+          if (scannedProducts[barcode]) scannedProducts[barcode].quantity += 1;
+          else scannedProducts[barcode] = { ...product, quantity: 1, barcode };
+          renderProductList();
+        })
+        .catch(err => console.error("Error fetching product:", err));
+    }
+
+    function renderProductList() {
+      productList.innerHTML = '';
+      let grandTotal = 0;
+      Object.values(scannedProducts).forEach((p, index) => {
+        const total = p.price * p.quantity;
+        grandTotal += total;
+        const row = `<tr class="width-increase">
+      <td>${index + 1}</td>
+      <td>${p.name}</td>
+      <td>₹${p.price}</td>
+      <td>
+        <div class="qty-wrapper">
+          <button class="qty-btn" onclick="updateQty('${p.barcode}', -1)">-</button>
+          <span class="qty-value">${p.quantity}</span>
+          <button class="qty-btn" onclick="updateQty('${p.barcode}', 1)">+</button>
+        </div>
+      </td>
+      <td>₹${total}</td>
+      <td><button onclick="removeProduct('${p.barcode}')">Delete</button></td>
+    </tr>`;
+        productList.innerHTML += row;
+      });
+      document.getElementById('total-amount').textContent = grandTotal.toFixed(2);
+      document.getElementById("payment-buttons").style.display = Object.keys(scannedProducts).length > 0 ? "flex" : "none";
+    }
+
+    function updateQty(barcode, change) {
+      if (scannedProducts[barcode]) {
+        scannedProducts[barcode].quantity += change;
+        if (scannedProducts[barcode].quantity <= 0) delete scannedProducts[barcode];
+        renderProductList();
+      }
+    }
+
+    function removeProduct(barcode) {
+      delete scannedProducts[barcode];
+      renderProductList();
+    }
+
+    // Save purchase to backend
+    async function savePurchase(paymentMethod, cashierCode = '') {
+      const products = Object.values(scannedProducts).map(p => ({
+        barcode: p.barcode,
+        name: p.name,
+        price: p.price,
+        quantity: p.quantity
+      }));
+      const payload = {
+        name: customerName,
+        mobile: customerNumber,
+        email: customerEmail,
+        products,
+        paymentMethod,
+        cashierCode
+      };
+      await fetch(`${BASE_URL}/purchase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    // Cash payment flow
+    async function handleCashPay() {
+      const payload = { name: customerName, mobile: customerNumber };
+      const response = await fetch(`${BASE_URL}/cash-intent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (result.success) {
+        const code = result.cashierCode;
+        localStorage.setItem("expectedCashierCode", code);
+        document.querySelector('.list-content').style.display = 'none';
+        document.getElementById('verify-section').style.display = 'block';
+        scannerContainer.style.display = 'none';
+        showMessage("Cash payment initiated. Please verify cashier code.", "success");
+      } else showMessage("❌ Failed to initiate cash payment.", "error");
+    }
+
+    function backToProductList() {
+      document.querySelector('.list-content').style.display = 'block';
+      scannerContainer.style.display = 'block';
+      document.getElementById('verify-section').style.display = 'none';
+    }
+
+    async function verifyCashierCodeAndDownload() {
+      const enteredCode = document.getElementById("verify-cashier-code").value;
+      const response = await fetch(`${BASE_URL}/verify-cashier-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile: customerNumber, cashierCode: enteredCode })
+      });
+      const result = await response.json();
+      if (result.success) {
+        await savePurchase("cash", enteredCode);
+        await generatePDFReceipt();
+        showMessage("✅ Payment verified! Receipt downloaded.", "success");
+        setTimeout(() => window.location.reload(), 2000);
+      } else showMessage("❌ " + result.message, "error");
+    }
+
+    // Online payment
+    async function handleOnlinePay() {
+      const total = document.getElementById('total-amount').textContent;
+      window.location.href = `upi://pay?pa=merchant@upi&pn=SmartCart&am=${total}&cu=INR`;
+      setTimeout(async () => {
+        await savePurchase("online");
+        await generatePDFReceipt();
+        showMessage("✅ Online Payment Successful! Receipt downloaded.", "success");
+        setTimeout(() => window.location.reload(), 2000);
+      }, 3000);
+    }
+
+    // PDF receipt generation
+    async function generatePDFReceipt() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Smart Cart Receipt", 70, 10);
+      doc.setFontSize(12);
+      doc.text("==========================================", 10, 15);
+      let y = 25;
+      doc.text("Barcode       Name        Price   Qty   Total", 10, y);
+      y += 10;
+      let grandTotal = 0;
+      for (const [barcode, product] of Object.entries(scannedProducts)) {
+        const line = `${barcode}  ${product.name}  ₹${product.price.toFixed(2)}  ${product.quantity}  ₹${(product.price * product.quantity).toFixed(2)}`;
+        doc.text(line, 10, y);
+        y += 8;
+        grandTotal += product.price * product.quantity;
+      }
+      y += 10;
+      doc.text(`Total Amount: ₹${grandTotal.toFixed(2)}`, 10, y);
+      y += 20;
+      doc.text("Thank you for shopping with us!", 50, y);
+      doc.save("receipt.pdf");
+    }
+  </script>
+
+</body>
+
+</html>

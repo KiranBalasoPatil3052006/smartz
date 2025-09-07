@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Verify Cashier Code</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background-color: #f2e6d7;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      font-size: 18px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #350410;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      background-color: #999;
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Enter Cashier Verification Code</h2>
+    <input type="text" id="codeInput" placeholder="Enter 6-digit code" maxlength="6" />
+    <div id="errorMsg" class="error"></div>
+    <button id="verify-btn">Verify & Generate Receipt</button>
+
+    <button class="back-btn" onclick="window.location.href='customer.html'">← Back</button>
+  </div>
+
+  <script>
+    document.getElementById("verify-btn").addEventListener("click", () => {
+      const enteredCode = document.getElementById("codeInput").value.trim();
+      const errorMsg = document.getElementById("errorMsg");
+
+      if (!/^\d{6}$/.test(enteredCode)) {
+        errorMsg.textContent = "Please enter a valid 6-digit code.";
+        return;
+      }
+
+      const txn = JSON.parse(localStorage.getItem("pendingTransaction"));
+      if (!txn || !txn.mobile) {
+        alert("No transaction data found.");
+        return;
+      }
+
+      fetch(`http://localhost:5000/verify-code/${txn.mobile}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.code === enteredCode) {
+            fetch("http://localhost:5000/purchase", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...txn, cashierCode: enteredCode })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                alert("Purchase successful! Generating receipt...");
+                window.location.href = "receipt.html"; // Or generate directly
+              } else {
+                errorMsg.textContent = "Failed to save purchase.";
+              }
+            });
+          } else {
+            errorMsg.textContent = "Incorrect code. Please try again.";
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          errorMsg.textContent = "Error verifying code.";
+        });
+    });
+  </script>
+</body>
+</html>
