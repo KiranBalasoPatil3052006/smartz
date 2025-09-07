@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost:27017/smartcart', {
+mongoose.connect('mongodb+srv://kiranbalasopatil33:semester4K@cluster0.4ayokxf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
