@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Cart Login</title>
   <link rel="icon" type="image/x-icon" href="images/favicon.ico">
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, Helvetica, sans-serif;
       background-color: #f2e6d7;
@@ -19,6 +23,7 @@
       align-items: center;
       height: 700px;
     }
+
     .container {
       width: 100%;
       padding: 10px;
@@ -28,6 +33,7 @@
       flex-direction: column;
       margin-top: -80px;
     }
+
     .login-container {
       background-color: #fff;
       padding: 40px 40px;
@@ -36,6 +42,7 @@
       border: 1px solid #d4c1aa;
       width: 400px;
     }
+
     .form-heading {
       text-align: center;
       color: #350410;
@@ -43,6 +50,7 @@
       font-size: 24px;
       margin-bottom: 20px;
     }
+
     label {
       color: #3d2c29;
       font-weight: bold;
@@ -50,7 +58,10 @@
       text-align: left;
       margin-top: 10px;
     }
-    input[type="text"], input[type="tel"], input[type="email"] {
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"] {
       width: 100%;
       height: 35px;
       padding: 5px 10px;
@@ -59,6 +70,7 @@
       background-color: #fdf9f3;
       margin: 8px;
     }
+
     .user-login {
       width: 100%;
       height: 50px;
@@ -72,31 +84,48 @@
       cursor: pointer;
       transition: background-color 0.3s;
     }
-    .user-login:hover { background-color: #5b2718; }
+
+    .user-login:hover {
+      background-color: #5b2718;
+    }
+
     .admin-link {
       margin-top: 15px;
       font-size: 14px;
       color: #8b5e3c;
       text-align: center;
     }
+
     .admin-link a {
       color: #350410;
       text-decoration: none;
       font-weight: bold;
     }
-    .admin-link a:hover { text-decoration: underline; }
+
+    .admin-link a:hover {
+      text-decoration: underline;
+    }
+
     #messageBox {
       margin-top: 10px;
       font-size: 18px;
       color: red;
       font-weight: bold;
     }
+
     @media (max-width: 480px) {
-      .form-heading { font-size: 20px; }
-      .user-login { font-size: 14px; height: 36px; }
+      .form-heading {
+        font-size: 20px;
+      }
+
+      .user-login {
+        font-size: 14px;
+        height: 36px;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <img src="images/cartimage.png" alt="Smart Cart Logo" width="200" height="200">
@@ -138,40 +167,53 @@
       messageBox.textContent = "";
       messageBox.style.color = "red";
 
+      // Validate empty fields
       if (!name || !number || !email) {
         messageBox.textContent = "⚠️ All fields are required!";
         return;
       }
 
+      // Validate 10-digit mobile
       if (!/^\d{10}$/.test(number)) {
         messageBox.textContent = "⚠️ Mobile number must be 10 digits only!";
         return;
       }
 
+      // Validate Gmail only
+      const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+      if (!gmailRegex.test(email)) {
+        messageBox.textContent = "⚠️ Please enter a valid Gmail address (example@gmail.com)";
+        return;
+      }
+
+      // Save in localStorage
       localStorage.setItem("customerName", name);
       localStorage.setItem("customerNumber", number);
       localStorage.setItem("customerEmail", email);
 
+      // Send to backend
       fetch(`${BASE_URL}/customer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, mobile: number, email })
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          messageBox.style.color = "green";
-          messageBox.textContent = "✅ Login successful! Redirecting...";
-          setTimeout(() => window.location.href = "customer.html", 1000);
-        } else {
-          messageBox.textContent = "❌ Error saving customer info!";
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        messageBox.textContent = "❌ Something went wrong!";
-      });
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            messageBox.style.color = "green";
+            messageBox.textContent = "✅ Login successful! Redirecting...";
+            setTimeout(() => window.location.href = "customer.html", 1000);
+          } else {
+            messageBox.textContent = "❌ Error saving customer info!";
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          messageBox.textContent = "❌ Something went wrong!";
+        });
     }
   </script>
+
 </body>
+
 </html>
