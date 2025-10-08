@@ -7,40 +7,52 @@
   <title>Smart Cart Login</title>
   <link rel="icon" type="image/x-icon" href="images/favicon.ico">
   <style>
+    /* General styles and resets */
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: #f2e6d7;
-      font-size: larger;
+      font-size: 16px; /* A base font-size for better scalability */
       font-weight: 400;
-      margin: 0;
-      padding: 0;
+      /* Changed to min-height and 100vh to ensure it fills the screen vertically on all devices */
+      min-height: 100vh; 
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 700px;
+      padding: 20px; /* Add padding for small screens so content doesn't touch the edges */
     }
 
+    /* Main container for the logo and login form */
     .container {
       width: 100%;
-      padding: 10px;
       display: flex;
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      margin-top: -80px;
     }
 
+    .smart-cart-logo {
+      width: 180px;
+      height: 180px;
+      margin-bottom: 20px;
+    }
+
+    /* The main login box */
     .login-container {
       background-color: #fff;
-      padding: 40px 40px;
+      padding: 40px;
       border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       border: 1px solid #d4c1aa;
-      width: 400px;
+      /* KEY CHANGE: Use max-width to cap the size on large screens */
+      max-width: 420px; 
+      /* KEY CHANGE: Use width: 100% to make it fluid on small screens */
+      width: 100%; 
     }
 
     .form-heading {
@@ -48,7 +60,7 @@
       color: #350410;
       font-weight: 600;
       font-size: 24px;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
 
     label {
@@ -56,25 +68,26 @@
       font-weight: bold;
       display: block;
       text-align: left;
-      margin-top: 10px;
+      margin-top: 15px;
+      margin-bottom: 5px; /* Added margin-bottom for better spacing */
     }
 
     input[type="text"],
     input[type="tel"],
     input[type="email"] {
       width: 100%;
-      height: 35px;
-      padding: 5px 10px;
+      height: 40px; /* Slightly increased height for better touch targets */
+      padding: 8px 12px;
       border: 1px solid #ccc;
       border-radius: 6px;
       background-color: #fdf9f3;
-      margin: 8px;
+      font-size: 16px; /* Ensure consistent font size */
     }
 
     .user-login {
       width: 100%;
-      height: 50px;
-      margin-top: 20px;
+      height: 45px; /* Consistent height */
+      margin-top: 25px;
       font-size: 16px;
       font-weight: bold;
       background-color: #350410;
@@ -90,7 +103,7 @@
     }
 
     .admin-link {
-      margin-top: 15px;
+      margin-top: 20px;
       font-size: 14px;
       color: #8b5e3c;
       text-align: center;
@@ -107,20 +120,35 @@
     }
 
     #messageBox {
-      margin-top: 10px;
-      font-size: 18px;
-      color: red;
+      margin-top: 15px;
+      font-size: 16px;
       font-weight: bold;
+      text-align: center; /* Center the message for a cleaner look */
+      color: red;
     }
 
-    @media (max-width: 480px) {
+    /* MEDIA QUERY for smaller devices like tablets and phones */
+    @media (max-width: 600px) {
+      body {
+        padding: 15px; /* Slightly less padding on the smallest screens */
+      }
+
+      .smart-cart-logo {
+        width: 150px;
+        height: 150px;
+      }
+      
+      .login-container {
+        padding: 25px; /* Reduce padding inside the form on mobile */
+      }
+
       .form-heading {
-        font-size: 20px;
+        font-size: 22px;
       }
 
       .user-login {
-        font-size: 14px;
-        height: 36px;
+        font-size: 16px;
+        height: 42px;
       }
     }
   </style>
@@ -128,20 +156,20 @@
 
 <body>
   <div class="container">
-    <img src="images/cartimage.png" alt="Smart Cart Logo" width="200" height="200">
+    <img src="images/cartimage.png" alt="Smart Cart Logo" class="smart-cart-logo">
 
     <div class="login-container">
       <form onsubmit="check(); return false;">
         <div class="form-heading">Customer Signin</div>
 
         <label for="name">Name:</label>
-        <input type="text" name="name" id="name" />
+        <input type="text" name="name" id="name" required />
 
         <label for="number">Mobile Number:</label>
-        <input type="tel" name="number" id="number" />
+        <input type="tel" name="number" id="number" required />
 
         <label for="email">Email:</label>
-        <input type="email" name="email" id="email" />
+        <input type="email" name="email" id="email" required />
 
         <input type="submit" class="user-login" value="Submit" />
 
@@ -154,7 +182,6 @@
     </div>
   </div>
 
-  <!-- Config for BASE_URL -->
   <script src="config.js"></script>
 
   <script>
@@ -175,14 +202,14 @@
 
       // Validate 10-digit mobile
       if (!/^\d{10}$/.test(number)) {
-        messageBox.textContent = "⚠️ Mobile number must be 10 digits only!";
+        messageBox.textContent = "⚠️ only 10 Digit Mobile Number";
         return;
       }
 
       // Validate Gmail only
       const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
       if (!gmailRegex.test(email)) {
-        messageBox.textContent = "⚠️ Please enter a valid Gmail address (example@gmail.com)";
+        messageBox.textContent = "⚠️ Invalid Email";
         return;
       }
 
@@ -197,19 +224,24 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, mobile: number, email })
       })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) { // Check for server-side errors (e.g., 404, 500)
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(data => {
           if (data.success) {
             messageBox.style.color = "green";
             messageBox.textContent = "✅ Login successful! Redirecting...";
             setTimeout(() => window.location.href = "customer.html", 1000);
           } else {
-            messageBox.textContent = "❌ Error saving customer info!";
+            messageBox.textContent = `❌ Error: ${data.message || 'Could not save customer info!'}`;
           }
         })
         .catch(err => {
-          console.error(err);
-          messageBox.textContent = "❌ Something went wrong!";
+          console.error('Fetch Error:', err);
+          messageBox.textContent = "❌ Something went wrong! Please try again later.";
         });
     }
   </script>
