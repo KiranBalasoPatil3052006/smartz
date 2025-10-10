@@ -94,6 +94,76 @@ const CashierCodeHistory = mongoose.model('CashierCodeHistory', cashierCodeHisto
 /* ====================
    📌 ROUTES
 ==================== */
+// ======================
+// 📦 PRODUCT MANAGEMENT
+// ======================
+
+// Add Product
+app.post('/add-product', async (req, res) => {
+  const { barcode, name, price } = req.body;
+  if (!barcode || !name || !price)
+    return res.status(400).json({ success: false, message: "All fields required" });
+
+  try {
+    const existing = await Product.findOne({ barcode });
+    if (existing)
+      return res.status(400).json({ success: false, message: "Barcode already exists" });
+
+    const product = new Product({ barcode, name, price });
+    await product.save();
+    res.json({ success: true, message: "✅ Product added successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database error" });
+  }
+});
+
+// Get Product by Barcode
+app.get('/product-manage/:barcode', async (req, res) => {
+  try {
+    const product = await Product.findOne({ barcode: req.params.barcode });
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    res.json({ success: true, product });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database error" });
+  }
+});
+
+// Update Product
+app.put('/update-product/:barcode', async (req, res) => {
+  const { name, price } = req.body;
+  try {
+    const updated = await Product.findOneAndUpdate(
+      { barcode: req.params.barcode },
+      { name, price },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ success: false, message: "Product not found" });
+    res.json({ success: true, message: "✅ Product updated successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database error" });
+  }
+});
+
+// Delete Product
+app.delete('/delete-product/:barcode', async (req, res) => {
+  try {
+    const deleted = await Product.findOneAndDelete({ barcode: req.params.barcode });
+    if (!deleted) return res.status(404).json({ success: false, message: "Product not found" });
+    res.json({ success: true, message: "🗑️ Product deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database error" });
+  }
+});
+
+// Get all Products
+app.get('/all-products', async (req, res) => {
+  try {
+    const products = await Product.find().sort({ name: 1 });
+    res.json({ success: true, products });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database error" });
+  }
+});
 
 // Product by barcode
 app.get('/product/:barcode', async (req, res) => {
