@@ -9,6 +9,7 @@
     <title>Smart Cart - Admin Dashboard</title>
     <link rel="stylesheet" href="AdmitStyle.css" />
     <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+
 </head>
 
 <body>
@@ -61,8 +62,11 @@
                 </form>
                 <br />
 
-                <!-- Search -->
-                <input type="text" id="barcode-search" placeholder="Search by Barcode..." maxlength="12" />
+                <!-- Search Bar with Button -->
+                <div class="search-container">
+                    <input type="text" id="barcode-search" placeholder="Search by Barcode..." maxlength="12" />
+                    <button id="search-btn" class="btn">Search</button>
+                </div>
 
                 <!-- Product Table -->
                 <table>
@@ -181,6 +185,9 @@
 
     <script>
         const messageBox = document.getElementById("messageBox");
+        const barcodeSearchInput = document.getElementById("barcode-search");
+        const searchBtn = document.getElementById("search-btn");
+        const productTableBody = document.getElementById("product-table-body");
 
         function showMessage(msg, type) {
             messageBox.textContent = msg;
@@ -190,9 +197,13 @@
         }
 
         function toggleSidebar() {
-            document.getElementById("sidebar").classList.toggle("active");
-            document.getElementById("mainContent").classList.toggle("active");
-            document.querySelector(".menu-toggle").classList.toggle("open");
+            const sidebar = document.getElementById("sidebar");
+            const mainContent = document.getElementById("mainContent");
+            const menuToggle = document.querySelector(".menu-toggle");
+
+            sidebar.classList.toggle("hidden");
+            mainContent.classList.toggle("active");
+            menuToggle.classList.toggle("open");
         }
 
         function resetView() {
@@ -221,6 +232,7 @@
         }
 
         // ========== PRODUCT MANAGEMENT ==========
+
         function showProductManagement() {
             resetView();
             document.getElementById("product-manage-section").style.display = "block";
@@ -234,19 +246,28 @@
         }
 
         function clearSearch() {
-            document.getElementById("barcode-search").value = "";
+            barcodeSearchInput.value = "";
         }
 
         function fetchProducts(searchBarcode = null) {
             fetch(`${BASE_URL}/products`)
                 .then(res => res.json())
                 .then(products => {
-                    const tbody = document.getElementById("product-table-body");
+                    const tbody = productTableBody;
                     tbody.innerHTML = "";
+
                     if (searchBarcode) {
-                        const found = products.find(p => p.barcode === searchBarcode);
-                        if (found) products = [found, ...products.filter(p => p.barcode !== searchBarcode)];
+                        const foundIndex = products.findIndex(p => p.barcode === searchBarcode);
+
+                        if (foundIndex === -1) {
+                            showMessage("Product not found", "error");
+                        } else {
+                            // Put found product at top
+                            const foundProd = products.splice(foundIndex, 1)[0];
+                            products.unshift(foundProd);
+                        }
                     }
+
                     products.forEach(prod => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
@@ -257,11 +278,46 @@
                 <button class="btn" onclick="showEditModal('${prod._id}')">Edit</button>
                 <button class="btn" onclick="deleteProduct('${prod._id}')">Delete</button>
               </td>`;
+
+                        // If this is the searched product, highlight it
+                        if (searchBarcode && prod.barcode === searchBarcode) {
+                            row.classList.add("highlight-glow");
+                            setTimeout(() => row.classList.remove("highlight-glow"), 2000);
+                        }
                         tbody.appendChild(row);
                     });
                 })
                 .catch(() => showMessage("Failed to load products", "error"));
         }
+
+        // Search button click handler
+        searchBtn.addEventListener("click", () => {
+            const searchVal = barcodeSearchInput.value.trim();
+
+            // Validate digits count
+            if (!/^\d{12}$/.test(searchVal)) {
+                if (searchVal.length === 0) {
+                    // If empty, just load all products without message
+                    fetchProducts();
+                } else if (searchVal.length !== 12) {
+                    showMessage("Invalid barcode", "error");
+                } else {
+                    showMessage("Invalid barcode", "error");
+                }
+                return;
+            }
+
+            // Valid 12-digit barcode - search and highlight
+            fetchProducts(searchVal);
+        });
+
+        // Also support pressing Enter on input to trigger search
+        barcodeSearchInput.addEventListener("keydown", e => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                searchBtn.click();
+            }
+        });
 
         document.getElementById("add-product-form").addEventListener("submit", e => {
             e.preventDefault();
@@ -282,12 +338,6 @@
                     }
                 })
                 .catch(() => showMessage("Error adding product.", "error"));
-        });
-
-        document.getElementById("barcode-search").addEventListener("input", function () {
-            const query = this.value.trim();
-            if (query.length === 12 && /^\d{12}$/.test(query)) fetchProducts(query);
-            else if (query.length === 0) fetchProducts();
         });
 
         function showEditModal(productId) {
@@ -340,6 +390,7 @@
         }
 
         // ========== PURCHASE / CUSTOMER / CASHIER ==========
+
         function loadFullPurchaseHistory() {
             fetch(`${BASE_URL}/purchase-history`)
                 .then(res => res.json())
@@ -448,7 +499,30 @@
             backToHome();
         }
 
-        document.addEventListener("DOMContentLoaded", loadFullPurchaseHistory);
+        // On DOM Content Loaded
+        document.addEventListener("DOMContentLoaded", () => {
+            loadFullPurchaseHistory();
+
+            // For smaller screens, toggle menu toggle button and initial sidebar state
+            function handleResize() {
+                const menuToggle = document.getElementById("menuToggle");
+                const sidebar = document.getElementById("sidebar");
+                const mainContent = document.getElementById("mainContent");
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.add("hidden");
+                    mainContent.classList.add("active");
+                    menuToggle.style.display = "block";
+                    menuToggle.classList.remove("open");
+                } else {
+                    sidebar.classList.remove("hidden");
+                    mainContent.classList.remove("active");
+                    menuToggle.style.display = "none";
+                }
+            }
+
+            handleResize();
+            window.addEventListener("resize", handleResize);
+        });
     </script>
 </body>
 
