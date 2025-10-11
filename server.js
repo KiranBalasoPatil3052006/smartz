@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const { generateCashierCode } = require('./verifyCode'); // helper for cashier code
+const { generateCashierCode } = require('./verifyCode'); // your custom helper
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 /* ====================
    📌 STATIC FILES
 ==================== */
-const PUBLIC_DIR = path.join(__dirname, 'public');  
+const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.static(PUBLIC_DIR));
 
 // Default route → CustomerLogin.html
@@ -34,25 +34,28 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smartcart
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('✅ MongoDB connected'))
-.catch(err => console.error('❌ MongoDB error:', err));
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB error:', err));
 
 /* ====================
    📌 MODELS
 ==================== */
+// Product Schema (defined once)
 const productSchema = new mongoose.Schema({
-  barcode: String,
+  barcode: { type: String, required: true, unique: true },
   name: String,
-  price: Number
+  price: Number,
 });
 const Product = mongoose.model('Product', productSchema);
 
+// Admin Schema
 const adminSchema = new mongoose.Schema({
   email: String,
   password: String
 });
 const Admin = mongoose.model('Admin', adminSchema);
 
+// Customer Schema
 const customerSchema = new mongoose.Schema({
   name: String,
   mobile: String,
@@ -60,6 +63,7 @@ const customerSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Customer = mongoose.model('Customer', customerSchema);
 
+// Purchase Schema
 const purchaseSchema = new mongoose.Schema({
   name: String,
   mobile: String,
@@ -73,6 +77,7 @@ const purchaseSchema = new mongoose.Schema({
 });
 const Purchase = mongoose.model('Purchase', purchaseSchema);
 
+// Cash Intent Schema
 const cashIntentSchema = new mongoose.Schema({
   name: String,
   mobile: String,
@@ -82,6 +87,7 @@ const cashIntentSchema = new mongoose.Schema({
 });
 const CashIntent = mongoose.model('CashIntent', cashIntentSchema);
 
+// Cashier Code History Schema
 const cashierCodeHistorySchema = new mongoose.Schema({
   cashierCode: String,
   mobile: String,
@@ -91,33 +97,26 @@ const cashierCodeHistorySchema = new mongoose.Schema({
 });
 const CashierCodeHistory = mongoose.model('CashierCodeHistory', cashierCodeHistorySchema);
 
-const productSchema = new mongoose.Schema({
-  barcode: { type: String, required: true, unique: true },
-  name: String,
-  price: Number
-});
-const Product = mongoose.model('Product', productSchema);
-
-
 /* ====================
    📌 ROUTES
 ==================== */
 
+// Product APIs
 app.post('/product', async (req, res) => {
   const { barcode, name, price } = req.body;
-  if (!barcode || !name || !price) return res.status(400).json({success:false,message:"Fields missing"});
+  if (!barcode || !name || !price) return res.status(400).json({ success: false, message: "Fields missing" });
+
   try {
-    // Prevent duplicate barcode
-    let existing = await Product.findOne({ barcode });
-    if (existing) return res.status(400).json({success:false, message:'Barcode already exists'});
+    const existing = await Product.findOne({ barcode });
+    if (existing) return res.status(400).json({ success: false, message: "Barcode already exists" });
+
     await Product.create({ barcode, name, price });
-    res.json({success:true, message: 'Product added'});
+    res.json({ success: true, message: 'Product added' });
   } catch (err) {
-    res.status(500).json({success:false, message:'Server error: '+err.message});
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// Get all products
 app.get('/products', async (req, res) => {
   try {
     const products = await Product.find().sort({ name: 1 });
@@ -127,55 +126,42 @@ app.get('/products', async (req, res) => {
   }
 });
 
-// Get product by barcode
-app.get('/product/:barcode', async (req, res) => {
-  try {
-    const product = await Product.findOne({ barcode: req.params.barcode });
-    if (!product) return res.status(404).json({success:false, message:'Product not found'});
-    res.json(product);
-  } catch (err) {
-    res.status(500).json({success:false, message:err.message});
-  }
-});
-
-// Get product by internal _id (for editing)
-app.get('/product/id/:id', async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({success:false, message:'Product not found'});
-    res.json(product);
-  } catch (err) {
-    res.status(500).json({success:false, message:err.message});
-  }
-});
-
-// Update product (edit details)
-app.put('/product/:id', async (req, res) => {
-  const { name, price } = req.body;
-  try {
-    await Product.findByIdAndUpdate(req.params.id, { name, price });
-    res.json({success:true, message:"Product updated"});
-  } catch (err) {
-    res.status(500).json({success:false, message:err.message});
-  }
-});
-
-// Delete product
-app.delete('/product/:id', async (req, res) => {
-  try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({success:true, message:"Product deleted"});
-  } catch (err) {
-    res.status(500).json({success:false, message:err.message});
-  }
-});
-
-// Product by barcode
 app.get('/product/:barcode', async (req, res) => {
   try {
     const product = await Product.findOne({ barcode: req.params.barcode });
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
     res.json(product);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/product/id/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.put('/product/:id', async (req, res) => {
+  const { name, price } = req.body;
+  if (!name || !price) return res.status(400).json({ success: false, message: "Fields missing" });
+
+  try {
+    await Product.findByIdAndUpdate(req.params.id, { name, price });
+    res.json({ success: true, message: 'Product updated' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.delete('/product/:id', async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Product deleted' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -193,7 +179,7 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
-// Save customer
+// Customers API
 app.post('/customer', async (req, res) => {
   const { name, mobile, email } = req.body;
   if (!name || !mobile || !email) return res.status(400).json({ success: false, message: "Missing fields" });
@@ -206,7 +192,6 @@ app.post('/customer', async (req, res) => {
   }
 });
 
-// Get customers
 app.get('/customers', async (req, res) => {
   try {
     const customers = await Customer.find().sort({ createdAt: -1 });
@@ -216,7 +201,7 @@ app.get('/customers', async (req, res) => {
   }
 });
 
-// Save purchase
+// Purchases API
 app.post('/purchase', async (req, res) => {
   const { name, mobile, email, products, paymentMethod, cashierCode } = req.body;
   if (!name || !mobile || !products || !paymentMethod) return res.status(400).json({ success: false, message: "Missing fields" });
@@ -231,7 +216,6 @@ app.post('/purchase', async (req, res) => {
   }
 });
 
-// Purchase history
 app.get('/purchase-history', async (req, res) => {
   try {
     const history = await Purchase.find().sort({ date: -1 });
@@ -241,7 +225,6 @@ app.get('/purchase-history', async (req, res) => {
   }
 });
 
-// Cash purchases
 app.get('/purchases/cash', async (req, res) => {
   try {
     const data = await Purchase.find({ paymentMethod: 'cash' }).sort({ date: -1 });
@@ -251,7 +234,6 @@ app.get('/purchases/cash', async (req, res) => {
   }
 });
 
-// Online purchases
 app.get('/purchases/online', async (req, res) => {
   try {
     const data = await Purchase.find({ paymentMethod: 'online' }).sort({ date: -1 });
@@ -261,7 +243,7 @@ app.get('/purchases/online', async (req, res) => {
   }
 });
 
-// Create cash intent
+// Cash Intent APIs
 app.post('/cash-intent', async (req, res) => {
   const { name, mobile } = req.body;
   if (!name || !mobile) return res.status(400).json({ success: false, message: "Missing fields" });
@@ -280,7 +262,6 @@ app.post('/cash-intent', async (req, res) => {
   }
 });
 
-// List cash intents
 app.get('/cash-intents', async (req, res) => {
   try {
     const intents = await CashIntent.find().sort({ date: -1 });
@@ -295,23 +276,22 @@ app.post('/verify-cashier-code', async (req, res) => {
   const { mobile, cashierCode } = req.body;
   try {
     const intent = await CashIntent.findOne({ mobile, cashierCode });
-    if (!intent) return res.status(401).json({ success: false, message: '❌ Invalid code' });
+    if (!intent) return res.status(401).json({ success: false, message: 'Invalid code' });
 
     if (new Date() > intent.expiresAt) {
       await CashIntent.deleteOne({ mobile });
-      return res.status(401).json({ success: false, message: '❌ Code expired' });
+      return res.status(401).json({ success: false, message: 'Code expired' });
     }
 
     await CashIntent.deleteOne({ mobile });
     await CashierCodeHistory.updateOne({ mobile, cashierCode }, { $set: { verified: true, verifiedAt: new Date() } });
 
-    res.json({ success: true, message: '✅ Code verified' });
+    res.json({ success: true, message: 'Code verified' });
   } catch (err) {
-    res.status(500).json({ success: false, message: '❌ Server error' });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// Cashier code history
 app.get('/cashier-code-history', async (req, res) => {
   try {
     const history = await CashierCodeHistory.find().sort({ createdAt: -1 });
