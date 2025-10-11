@@ -3,213 +3,362 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Login</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f2e6d7;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      flex-direction: column;
-    }
-
-    .container {
-      width: 90%;
-      max-width: 400px;
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    img {
-      width: 150px;
-      height: auto;
-      margin-bottom: 20px;
-    }
-
-    .login-container {
-      background-color: #fff;
-      border: 1px solid #d4c1aa;
-      border-radius: 12px;
-      padding: 30px 25px;
-      width: 100%;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .login-container h2 {
-      color: #350410;
-      margin-bottom: 25px;
-      text-align: center;
-      font-size: 24px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      color: #3d2c29;
-      font-weight: bold;
-    }
-
-    input[type="email"],
-    input[type="password"] {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background-color: #fdf9f3;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #350410;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    button:hover {
-      background-color: #5b2718;
-    }
-
-    .message {
-      margin: 10px 0;
-      font-size: 14px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .message.success {
-      color: green;
-    }
-
-    .message.error {
-      color: red;
-    }
-
-    .footer {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 14px;
-      color: #8b5e3c;
-    }
-
-    .customer-link {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .customer-link a {
-      color: #350410;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .customer-link a:hover {
-      text-decoration: underline;
-    }
-
-    @media screen and (max-width: 480px) {
-      .login-container {
-        padding: 25px 15px;
-      }
-
-      img {
-        width: 120px;
-      }
-
-      .login-container h2 {
-        font-size: 20px;
-      }
-
-      input[type="email"],
-      input[type="password"],
-      button {
-        font-size: 14px;
-      }
-
-      .footer,
-      .customer-link {
-        font-size: 13px;
-      }
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin - Dashboard</title>
+  <link rel="stylesheet" href="AdminStyle.css" />
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
 </head>
 
 <body>
-  <div class="container">
-    <img src="images/cartimage.png" alt="Smart Cart Logo">
+  <div class="sidebar" id="sidebar">
+    <a href="#" onclick="showMainPage()">Home</a>
+    <a href="#" onclick="showCustomers()">Customers</a>
+    <a href="#" onclick="showProductManagement()">Product Manage</a>
+    <a href="adminlogin.html">Logout</a>
+  </div>
 
-    <div class="login-container">
-      <h2>Admin Login</h2>
-      <form id="adminLoginForm">
-        <label for="email">Email ID</label>
-        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+  <div class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+    <span></span><span></span><span></span>
+  </div>
 
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter password" required>
+  <div class="main-content" id="mainContent">
+    <div class="container">
+      <h1 class="admin-heading">Smart Cart - Admin</h1>
 
-        <button type="submit">Login</button>
-        <div id="loginMessage" class="message"></div>
-      </form>
-
-      <div class="footer">Only authorized admin access allowed.</div>
-      <div class="customer-link">
-        Are you a customer? <a href="CustomerLogin.html">Click here</a>
+      <div class="btn-group" id="main-buttons">
+        <button id="back-btn" class="btn" style="display:none;" onclick="backToHome()">Back</button>
+        <button id="cash-payment-btn" class="btn" onclick="showCashPayments()">Cash Payments</button>
+        <button id="online-payment-btn" class="btn" onclick="showOnlinePayments()">Online Payments</button>
+        <button id="cashier-code-btn" class="btn" onclick="showCashierCodes()">Cashier Codes</button>
       </div>
+
+      <!-- Message -->
+      <div id="messageBox"></div>
+
+      <!-- PRODUCT MANAGEMENT SECTION -->
+      <div id="product-manage-section" style="display:none;">
+        <h2>Product Management</h2>
+
+        <!-- Add Product Form -->
+        <form id="add-product-form">
+          <label>Product Name:
+            <input type="text" id="product-name" placeholder="Enter product name" required />
+          </label>
+          <label>Barcode (UPC-A):
+            <input type="text" id="product-barcode" placeholder="12-digit barcode" required pattern="\d{12}" maxlength="12" />
+          </label>
+          <label>Price:
+            <input type="number" id="product-price" placeholder="Price in ₹" min="0" step="0.01" required />
+          </label>
+          <button type="submit" class="btn">Add Product</button>
+        </form>
+        <br />
+
+        <!-- Search Bar -->
+        <input type="text" id="barcode-search" placeholder="Search by Barcode..." maxlength="12" />
+
+        <!-- Products Table -->
+        <table>
+          <thead>
+            <tr>
+              <th>Barcode</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="product-table-body">
+            <!-- dynamically filled -->
+          </tbody>
+        </table>
+
+        <!-- Product Edit Modal -->
+        <div id="edit-modal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Product</h2>
+            <form id="edit-product-form">
+              <input type="hidden" id="edit-product-id" />
+              <label>Product Name:
+                <input type="text" id="edit-product-name" required />
+              </label>
+              <label>Barcode (UPC-A):
+                <input type="text" id="edit-product-barcode" readonly />
+              </label>
+              <label>Price:
+                <input type="number" id="edit-product-price" min="0" step="0.01" required />
+              </label>
+              <button type="submit" class="btn">Save Changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Other dashboard sections go here (Customers, Cashier Codes, Payments) -->
+      <div id="summary-history-section">
+        <h2>Customer Purchase Summary</h2>
+        <!-- summary table here -->
+        <!-- For demo, just placeholder -->
+        <p>Summary content...</p>
+      </div>
+
+      <div id="customer-section" style="display:none;">
+        <h2>All Customers</h2>
+        <!-- customer table -->
+        <p>Customer content...</p>
+      </div>
+
+      <div id="cashier-code-display" style="display:none;">
+        <h2>Cashier Codes</h2>
+        <!-- cashier code content -->
+        <p>Cashier code content...</p>
+      </div>
+
     </div>
   </div>
 
-  <script src="config.js"></script>
   <script>
-    document.getElementById('adminLoginForm').addEventListener('submit', async function (e) {
+    const BASE_URL = window.location.origin; // Set your backend URL if remote
+
+    // Sidebar toggle
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("active");
+      document.getElementById("mainContent").classList.toggle("active");
+      document.querySelector(".menu-toggle").classList.toggle("open");
+    }
+
+    // Hide all main sections except message box and back-btn to reset
+    function resetView() {
+      const sections = [
+        "product-manage-section",
+        "customer-section",
+        "cashier-code-display",
+        "summary-history-section",
+      ];
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = "none";
+      });
+
+      // Hide message box
+      const messageBox = document.getElementById("messageBox");
+      if (messageBox) messageBox.style.display = "none";
+
+      // Hide back button by default
+      const backBtn = document.getElementById("back-btn");
+      if (backBtn) backBtn.style.display = "none";
+
+      // Show main buttons by default
+      const mainButtons = document.getElementById("main-buttons");
+      if (mainButtons) mainButtons.style.display = "block";
+    }
+
+    // Show Product Management, hide others, show Back button, hide main buttons
+    function showProductManagement() {
+      resetView();
+      document.getElementById("product-manage-section").style.display = "block";
+
+      document.getElementById("back-btn").style.display = "inline-block";
+      // Hide other main buttons when in product manage mode
+      const mainButtons = document.getElementById("main-buttons");
+      if (mainButtons) mainButtons.style.display = "none";
+
+      fetchProducts();
+      clearProductForm();
+      clearSearch();
+    }
+
+    // Go back to normal dashboard view (summary/history section shown here)
+    function backToHome() {
+      resetView();
+      document.getElementById("summary-history-section").style.display = "block";
+    }
+
+    // Clear add product form
+    function clearProductForm() {
+      const form = document.getElementById("add-product-form");
+      if (form) form.reset();
+    }
+
+    // Clear search input
+    function clearSearch() {
+      const search = document.getElementById("barcode-search");
+      if (search) search.value = "";
+    }
+
+    // Fetch products and render table
+    function fetchProducts(searchBarcode = null) {
+      fetch(`${BASE_URL}/products`)
+        .then(res => res.json())
+        .then(products => {
+          const tbody = document.getElementById("product-table-body");
+          tbody.innerHTML = "";
+          if (searchBarcode) {
+            const found = products.find(p => p.barcode === searchBarcode);
+            if (found) {
+              products = [found, ...products.filter(p => p.barcode !== searchBarcode)];
+            }
+          }
+          products.forEach(prod => {
+            const row = document.createElement("tr");
+            row.setAttribute("data-id", prod._id);
+            row.innerHTML = `
+              <td data-label="Barcode">${prod.barcode}</td>
+              <td data-label="Name">${prod.name}</td>
+              <td data-label="Price">₹${Number(prod.price).toFixed(2)}</td>
+              <td data-label="Actions">
+                <button class="btn" onclick="showEditModal('${prod._id}')">Edit</button>
+                <button class="btn" onclick="deleteProduct('${prod._id}')">Delete</button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        })
+        .catch(() => showMessage("Failed to load products", "error"));
+    }
+
+    // Show edit modal and fill data for product editing
+    function showEditModal(productId) {
+      fetch(`${BASE_URL}/product/id/${productId}`)
+        .then(res => res.json())
+        .then(prod => {
+          document.getElementById("edit-product-id").value = prod._id;
+          document.getElementById("edit-product-name").value = prod.name;
+          document.getElementById("edit-product-barcode").value = prod.barcode;
+          document.getElementById("edit-product-price").value = prod.price;
+          document.getElementById("edit-modal").style.display = "flex";
+        })
+        .catch(() => showMessage("Failed to load product details", "error"));
+    }
+
+    // Close the edit modal
+    function closeEditModal() {
+      document.getElementById("edit-modal").style.display = "none";
+    }
+
+    // Show message box with success/error styling
+    function showMessage(msg, type) {
+      const mb = document.getElementById("messageBox");
+      mb.textContent = msg;
+      mb.className = type === "success" ? "success" : "error";
+      mb.style.display = "block";
+      setTimeout(() => {
+        mb.style.display = "none";
+      }, 3000);
+    }
+
+    // Add Product form submit handler
+    document.getElementById("add-product-form").addEventListener("submit", (e) => {
       e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const messageDiv = document.getElementById('loginMessage');
-      messageDiv.textContent = "Checking credentials...";
+      const name = document.getElementById("product-name").value.trim();
+      const barcode = document.getElementById("product-barcode").value.trim();
+      const price = parseFloat(document.getElementById("product-price").value);
 
-      try {
-        const res = await fetch(`${BASE_URL}/admin/login`, {   // <-- using BASE_URL
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
+      if (!name || !barcode || isNaN(price)) {
+        showMessage("Please fill out all product fields correctly.", "error");
+        return;
+      }
 
-        const data = await res.json();
+      fetch(`${BASE_URL}/product`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, barcode, price }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          showMessage(data.message, data.success ? "success" : "error");
+          if (data.success) {
+            clearProductForm();
+            fetchProducts();
+          }
+        })
+        .catch(() => showMessage("Error adding product.", "error"));
+    });
 
-        if (res.ok) {
-          messageDiv.textContent = data.message;
-          messageDiv.className = "message success";
-          setTimeout(() => window.location.href = 'admit.html', 1000);
-        } else {
-          messageDiv.textContent = data.message;
-          messageDiv.className = "message error";
-        }
-      } catch (error) {
-        messageDiv.textContent = "Server not reachable.";
-        messageDiv.className = "message error";
+    // Edit Product form submit handler
+    document.getElementById("edit-product-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = document.getElementById("edit-product-id").value;
+      const name = document.getElementById("edit-product-name").value.trim();
+      const price = parseFloat(document.getElementById("edit-product-price").value);
+
+      if (!name || isNaN(price)) {
+        showMessage("Please fill out all edit fields correctly.", "error");
+        return;
+      }
+
+      fetch(`${BASE_URL}/product/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, price }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          showMessage(data.message, data.success ? "success" : "error");
+          if (data.success) {
+            closeEditModal();
+            fetchProducts();
+          }
+        })
+        .catch(() => showMessage("Error updating product.", "error"));
+    });
+
+    // Delete product
+    function deleteProduct(productId) {
+      if (!confirm("Are you sure you want to delete this product?")) return;
+
+      fetch(`${BASE_URL}/product/${productId}`, {
+        method: "DELETE",
+      })
+        .then(res => res.json())
+        .then(data => {
+          showMessage(data.message, data.success ? "success" : "error");
+          if (data.success) {
+            fetchProducts();
+          }
+        })
+        .catch(() => showMessage("Error deleting product.", "error"));
+    }
+
+    // Barcode search input handler
+    document.getElementById("barcode-search").addEventListener("input", function () {
+      const query = this.value.trim();
+      if (query.length === 12 && /^\d{12}$/.test(query)) {
+        fetchProducts(query);
+      } else if(query.length === 0) {
+        fetchProducts();
       }
     });
-  </script>
 
+    // Placeholder dummy functions for other sections to keep complete
+    function showMainPage() {
+      resetView();
+      document.getElementById("summary-history-section").style.display = "block";
+    }
+    function showCustomers() {
+      resetView();
+      const custSection = document.getElementById("customer-section");
+      if(custSection) custSection.style.display = "block";
+    }
+    function showCashPayments() {
+      resetView();
+      // Implement as per your code
+    }
+    function showOnlinePayments() {
+      resetView();
+      // Implement as per your code
+    }
+    function showCashierCodes() {
+      resetView();
+      const cashierSection = document.getElementById("cashier-code-display");
+      if(cashierSection) cashierSection.style.display = "block";
+    }
+
+    // Initialize: Show main dashboard on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      showMainPage();
+    });
+  </script>
 </body>
 
 </html>
