@@ -5,7 +5,14 @@ body {
     background-color: #ffe3c2;
     overflow-x: hidden;
 }
-
+.container {
+    max-width: 1000px;
+    margin: auto;
+    background-color: #fff8f2;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 /* === Sidebar Styles === */
 .sidebar {
     height: 100vh;
@@ -22,24 +29,21 @@ body {
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
     z-index: 1000;
 }
-
+.sidebar.active {
+    left: 0;
+}
 .sidebar a {
     padding: 12px 20px;
     text-decoration: none;
     font-size: 18px;
     color: #350410;
     display: block;
-    transition: 0.3s;
     border-radius: 10px;
+    transition: 0.3s;
 }
-
 .sidebar a:hover {
     background-color: #350410d0;
     color: white;
-}
-
-.sidebar.active {
-    left: 0;
 }
 
 /* === Toggle Button (Hamburger) === */
@@ -50,7 +54,6 @@ body {
     cursor: pointer;
     z-index: 1100;
 }
-
 .menu-toggle span {
     display: block;
     width: 28px;
@@ -60,15 +63,12 @@ body {
     border-radius: 2px;
     transition: all 0.3s ease;
 }
-
 .menu-toggle.open span:nth-child(1) {
     transform: rotate(45deg) translate(5px, 5px);
 }
-
 .menu-toggle.open span:nth-child(2) {
     opacity: 0;
 }
-
 .menu-toggle.open span:nth-child(3) {
     transform: rotate(-45deg) translate(5px, -5px);
 }
@@ -80,33 +80,46 @@ body {
     position: relative;
     z-index: 0;
 }
-
-.container {
-    max-width: 1000px;
-    margin: auto;
-    background-color: #fff8f2;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+/* === Heading === */
+.admin-heading {
+    text-align: center;
+    font-size: 2rem;
+    color: #350410;
+    margin-bottom: 20px;
+    text-decoration-line: underline;
+    margin-top: -10px;
 }
 
-/* === Heading === */
-h2 {
+/* === Button Styles === */
+.btn-group {
     text-align: center;
-    color: #350410;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
+}
+.btn {
+    background: #350410de;
+    color: #fff;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px 3px;
+    font-size: 1rem;
+    transition: background 0.2s;
+    font-weight: bold;
+}
+.btn:hover {
+    background: #5c0a1c;
 }
 
 /* === Table Styles === */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 40px;
+    margin: 20px 0 40px 0;
+    background: white;
     table-layout: fixed;
 }
-
-th,
-td {
+th, td {
     text-align: center;
     padding: 12px;
     border-bottom: 1px solid #ddd;
@@ -114,97 +127,282 @@ td {
     color: #350410;
     word-wrap: break-word;
 }
-
 th {
     background-color: #350410de;
     color: white;
 }
-
 tr:hover {
     background-color: #fff0e5;
 }
 
-/* === Button Styles === */
-#back-btn,
-#cash-payment-btn {
-    margin-bottom: 20px;
-    background: #350410;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+/* === Forms & Product Management === */
+#add-product-form, #edit-product-form {
+    margin-bottom: 16px;
+    background: #fff4ec;
+    border-radius: 8px;
+    padding: 18px 20px 12px 20px;
+    box-shadow: 0 2px 8px rgba(53,4,16,0.06);
+    max-width: 410px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+}
+#add-product-form label, #edit-product-form label {
     font-weight: bold;
+    margin-bottom: 8px;
+    color: #350410;
+}
+#add-product-form input, #edit-product-form input {
+    padding: 7px;
+    border: 1px solid #ccb;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-bottom: 12px;
+    outline: none;
 }
 
-#cashier-code-display {
-    margin-top: 20px;
+/* === Search Bar === */
+#barcode-search {
+    display: block;
+    width: 310px;
+    max-width: 80%;
+    margin: 0 auto 18px auto;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+/* === Message Box === */
+#messageBox {
+    margin: 18px 0 0 0;
     font-size: 1.1rem;
-    color: #350410;
-}
-.admin-heading {
+    font-weight: bold;
     text-align: center;
-    font-size: 2rem;
-    color: #350410;
-    margin-bottom: 20px;
-    text-decoration-line: underline;
-    margin-bottom: 25px;
-    margin-top: -10px;
+    padding: 9px;
+    border-radius: 6px;
+    display: none;
+}
+#messageBox.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    display: block;
+}
+#messageBox.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    display: block;
 }
 
+/* === Modal Dialog (Edit Product) === */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 2000; 
+    left: 0; top: 0; 
+    width: 100vw; height: 100vh; 
+    background: rgba(0,0,0,0.22); 
+    align-items: center; 
+    justify-content: center;
+}
+.modal-content {
+    background: #fff;
+    margin: 12% auto;
+    padding: 26px 19px 18px 19px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 370px;
+    position: relative;
+    box-shadow: 0px 2px 16px rgba(30,12,21,0.15);
+}
+.close {
+    color: #aa1111;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-right: -3px;
+}
+.close:hover {
+    color: #d25858;
+}
 
-/* === Responsive Table on Mobile === */
+/* === Responsive Table and Layout on Mobile === */
+@media (max-width: 868px) {
+    .container { padding: 12px; border-radius: 0; }
+    .main-content { padding: 12px; }
+}
 @media (max-width: 768px) {
-    table,
-    thead,
-    tbody,
-    th,
-    td,
-    tr {
+    .container { padding: 8px; }
+    .admin-heading { font-size: 1.6rem; }
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tr { margin-bottom: 14px; border: 1px solid #ccc; border-radius: 8px; padding: 12px; background: #fff; }
+    td { 
+        padding: 12px 10px 10px 50%; 
+        text-align: left; 
+        position: relative; 
+        border: none;
+        min-height: 28px;
+        word-break: break-word;
+        white-space: normal;
+    }
+    td::before {
+        content: attr(data-label);
+        position: absolute; left: 15px; top: 10px; 
+        font-weight: bold; color: #333; white-space: nowrap;
+    }
+    #barcode-search, #add-product-form input, #edit-product-form input {
+        width: 95%;
+        font-size: 1rem;
+    }
+    .modal-content {
+        margin: 50% auto;
+        width: 95%;
+    }
+    .btn {
+        width: 90%;
+        margin: 6px auto;
+        padding: 9px 0;
+        font-size: 1.05rem;
+    }
+    #add-product-form, #edit-product-form {
+        padding: 15px 10px;
+    }
+}
+
+/* === Additional for 414px wide devices (portrait typical mobiles) === */
+@media (max-width: 414px) {
+    .container {
+        padding: 8px 6px;
+        max-width: 100%;
+        margin: 0 4px;
+    }
+    table, thead, tbody, th, td, tr {
         display: block;
     }
-
     thead {
         display: none;
     }
-
     tr {
-        margin-bottom: 15px;
+        margin-bottom: 18px;
         border: 1px solid #ccc;
         border-radius: 8px;
-        padding: 10px;
-        background-color: #fff;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        padding: 14px 10px;
+        background: #fff;
+        word-break: break-word;
+        white-space: normal;
     }
-
     td {
-        padding: 10px 10px 10px 50%;
+        padding: 14px 10px 14px 50%;
         text-align: left;
         position: relative;
+        border: none;
+        min-height: 30px;
+        word-break: break-word;
+        white-space: normal;
     }
-
     td::before {
         content: attr(data-label);
         position: absolute;
-        left: 15px;
-        top: 10px;
+        left: 13px;
+        top: 14px;
         font-weight: bold;
         color: #333;
         white-space: nowrap;
+        font-size: 0.95rem;
     }
-
-    .main-content {
-        padding: 15px;
-        margin-top: 50px;
-    }
-
-    .container {
-        padding: 20px;
-    }
-
-    #back-btn,
-    #cash-payment-btn {
+    #barcode-search, #add-product-form input, #edit-product-form input {
         width: 100%;
         font-size: 1rem;
+        padding: 9px 10px;
+    }
+    .btn {
+        width: 95%;
+        font-size: 1rem;
+        padding: 10px 0;
+        margin: 10px auto;
+    }
+    .modal-content {
+        width: 98%;
+        margin: 55% auto 30% auto;
+        padding: 25px 18px 20px 18px;
     }
 }
+
+/* === Additional for 360px wide devices (smaller mobiles) === */
+@media (max-width: 360px) {
+    .container {
+        padding: 6px 4px;
+        max-width: 100%;
+        margin: 0 3px;
+    }
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+    thead {
+        display: none;
+    }
+    tr {
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 16px 8px;
+        background: #fff;
+        word-break: break-word;
+        white-space: normal;
+    }
+    td {
+        padding: 16px 8px 16px 48%;
+        text-align: left;
+        position: relative;
+        border: none;
+        min-height: 32px;
+        word-break: break-word;
+        white-space: normal;
+        font-size: 0.92rem;
+    }
+    td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 12px;
+        top: 16px;
+        font-weight: bold;
+        color: #333;
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+    #barcode-search, #add-product-form input, #edit-product-form input {
+        width: 100%;
+        font-size: 0.94rem;
+        padding: 8px 9px;
+    }
+    .btn {
+        width: 94%;
+        font-size: 0.95rem;
+        padding: 9px 0;
+        margin: 12px auto;
+    }
+    .modal-content {
+        width: 98%;
+        margin: 60% auto 35% auto;
+        padding: 22px 16px 18px 16px;
+    }
+}
+
+@media (max-width: 500px) {
+    .admin-heading { font-size: 1.13rem; }
+    .btn { font-size: 0.98rem; }
+    table td { font-size: 0.91rem; }
+    #barcode-search { font-size: 0.98rem; }
+}
+
+::-webkit-scrollbar { width: 7px; background: #ffe3c2; }
+::-webkit-scrollbar-thumb { background: #dca080; border-radius: 4px; }
+
+/* === Utility === */
+label { display: block; margin-top: 8px; }
+.modal label { margin-bottom: 4px; font-size: 1rem; }
