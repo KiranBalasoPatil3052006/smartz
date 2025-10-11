@@ -1,4 +1,5 @@
         /* === Global Styles === */
+        /* === Global Styles === */
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -6,6 +7,7 @@
             overflow-x: hidden;
         }
 
+        /* Container styling (remains same) */
         .container {
             max-width: 1000px;
             margin: auto;
@@ -20,27 +22,27 @@
             height: 100vh;
             width: 220px;
             position: fixed;
+            /* fixed position for stickiness */
             top: 0;
             left: 0;
-            /* Changed - so it is sticky */
+            /* default open, toggle class to hide */
             background-color: #ffe3c22c;
             color: #350410de;
-            /* transition: left 0.3s ease; */
-            /* removed toggle left for always visible */
+            transition: left 0.3s ease;
             padding-top: 60px;
             border-top-right-radius: 10px;
             border-bottom-right-radius: 10px;
             box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             overflow-y: auto;
-            /* allow scroll if sidebar height exceeded */
         }
 
-        /* When sidebar toggled off (mobile hamburger) */
-        .sidebar.hidden {
+        .sidebar.closed {
             left: -220px;
+            /* hide sidebar with -220px offset */
         }
 
+        /* Sidebar links styling (unchanged) */
         .sidebar a {
             padding: 12px 20px;
             text-decoration: none;
@@ -56,30 +58,30 @@
             color: white;
         }
 
-        /* === Toggle Button (Hamburger) === */
+        /* === Hamburger toggle button (fixed) === */
         .menu-toggle {
             position: fixed;
-            /* changed absolute to fixed for sticky */
+            /* fixed at top-left for stickiness */
             top: 20px;
-            left: 240px;
-            /* shifted right to be next to sidebar */
+            left: 20px;
             cursor: pointer;
-            z-index: 1100;
-            display: none;
-            /* will show only on mobile */
+            z-index: 1101;
+            width: 30px;
+            height: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        /* Hamburger menu lines */
         .menu-toggle span {
             display: block;
-            width: 28px;
             height: 4px;
-            margin: 6px 0;
             background-color: #350410;
             border-radius: 2px;
             transition: all 0.3s ease;
         }
 
+        /* Animate hamburger to X when open */
         .menu-toggle.open span:nth-child(1) {
             transform: rotate(45deg) translate(5px, 5px);
         }
@@ -92,23 +94,23 @@
             transform: rotate(-45deg) translate(5px, -5px);
         }
 
-        /* === Main Content === */
+        /* === Main Content styles (fixed/sticky) ***not*** move on sidebar toggle === */
         .main-content {
             padding: 20px;
-            transition: margin-left 0.3s ease;
-            position: relative;
+            position: static;
+            /* Keep static, do NOT move */
             z-index: 0;
-            margin-left: 220px;
-            /* shifted right due to fixed sidebar */
+            margin-top: 40px;
+            margin-left: 0;
+            /* no margin adjustment needed */
             min-height: 100vh;
             box-sizing: border-box;
         }
 
-        .main-content.active {
-            margin-left: 0px;
-        }
+        /* Remove any margin-left transitions since content stays fixed */
+        /* (Optional: if you used margin-left, you can ignore or keep static) */
 
-        /* === Heading === */
+        /* === Heading styling (unchanged) === */
         .admin-heading {
             text-align: center;
             font-size: 2rem;
@@ -118,7 +120,7 @@
             margin-top: -10px;
         }
 
-        /* === Button Styles === */
+        /* === Buttons styling (unchanged) === */
         .btn-group {
             text-align: center;
             margin-bottom: 25px;
@@ -141,7 +143,7 @@
             background: #5c0a1c;
         }
 
-        /* === Table Styles === */
+        /* === Table styles (unchanged) === */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -170,7 +172,7 @@
             background-color: #fff0e5;
         }
 
-        /* === Highlight glow for searched product === */
+        /* Highlight effect for searched product */
         .highlight-glow {
             animation: glow-bg 2s ease forwards;
         }
@@ -187,7 +189,7 @@
             }
         }
 
-        /* === Forms & Product Management === */
+        /* Forms styles (unchanged) */
         #add-product-form,
         #edit-product-form {
             margin-bottom: 16px;
@@ -219,7 +221,7 @@
             outline: none;
         }
 
-        /* === Search Bar container with button === */
+        /* Search bar container (unchanged) */
         .search-container {
             width: 100%;
             max-width: 410px;
@@ -237,7 +239,7 @@
             font-size: 1rem;
         }
 
-        /* === Message Box === */
+        /* Message box styles (unchanged) */
         #messageBox {
             margin: 18px 0 0 0;
             font-size: 1.1rem;
@@ -262,7 +264,7 @@
             display: block;
         }
 
-        /* === Modal Dialog (Edit Product) === */
+        /* Modal dialog styles (unchanged) */
         .modal {
             display: none;
             position: fixed;
@@ -283,7 +285,6 @@
             border-radius: 10px;
             width: 90%;
             max-width: 370px;
-            position: relative;
             box-shadow: 0px 2px 16px rgba(30, 12, 21, 0.15);
         }
 
@@ -309,7 +310,15 @@
 
             .main-content {
                 padding: 12px;
-                margin-left: 220px;
+                border-radius: 10px;
+            }
+        }
+        @media (max-width: 420px) {
+            
+
+            .main-content {
+            
+                border-radius: 20px;
             }
         }
 
@@ -322,19 +331,19 @@
                 font-size: 1.6rem;
             }
 
-            .sidebar {
+            /* On mobile, sidebar initially closed */
+            .sidebar.closed {
                 left: -220px;
-            }
-
-            .menu-toggle {
-                display: block;
-                left: 20px;
             }
 
             .main-content {
                 margin-left: 0;
                 padding: 12px;
             }
+        }
+
+        /* === Additional styles for tables on mobile for center text and spacing === */
+        @media (max-width: 768px) {
 
             table,
             thead,
@@ -353,7 +362,7 @@
                 margin-bottom: 14px;
                 border: 1px solid #ccc;
                 border-radius: 8px;
-                padding: 12px;
+                padding: 12px 20px;
                 background: #fff;
                 word-break: break-word;
                 white-space: normal;
@@ -362,7 +371,7 @@
             }
 
             td {
-                padding: 12px 10px 10px 50%;
+                padding: 12px 10px 10px 10px;
                 text-align: center;
                 position: relative;
                 border: none;
@@ -377,7 +386,7 @@
             td::before {
                 content: attr(data-label);
                 position: absolute;
-                left: 15px;
+                left: 20px;
                 top: 10px;
                 font-weight: bold;
                 color: #333;
@@ -409,182 +418,7 @@
             }
         }
 
-        /* === Additional for 414px wide devices (portrait typical mobiles) === */
-        @media (max-width: 414px) {
-            .container {
-                padding: 8px 6px;
-                max-width: 100%;
-                margin: 0 4px;
-            }
-
-            table,
-            thead,
-            tbody,
-            th,
-            td,
-            tr {
-                display: block;
-            }
-
-            thead {
-                display: none;
-            }
-
-            tr {
-                margin-bottom: 18px;
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                padding: 14px 10px;
-                background: #fff;
-                word-break: break-word;
-                white-space: normal;
-                text-align: center;
-                font-size: 1.15rem;
-            }
-
-            td {
-                padding: 14px 10px 14px 50%;
-                text-align: center;
-                position: relative;
-                border: none;
-                min-height: 30px;
-                word-break: break-word;
-                white-space: normal;
-                font-size: 1.15rem;
-                display: flex;
-                justify-content: center;
-            }
-
-            td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 13px;
-                top: 14px;
-                font-weight: bold;
-                color: #333;
-                white-space: nowrap;
-                font-size: 1.05rem;
-            }
-
-            #barcode-search,
-            #add-product-form input,
-            #edit-product-form input {
-                width: 100%;
-                font-size: 1.1rem;
-                padding: 9px 10px;
-            }
-
-            .btn {
-                width: 95%;
-                font-size: 1.1rem;
-                padding: 10px 0;
-                margin: 10px auto;
-            }
-
-            .modal-content {
-                width: 98%;
-                margin: 55% auto 30% auto;
-                padding: 25px 18px 20px 18px;
-            }
-        }
-
-        /* === Additional for 360px wide devices (smaller mobiles) === */
-        @media (max-width: 360px) {
-            .container {
-                padding: 6px 4px;
-                max-width: 100%;
-                margin: 0 3px;
-            }
-
-            table,
-            thead,
-            tbody,
-            th,
-            td,
-            tr {
-                display: block;
-            }
-
-            thead {
-                display: none;
-            }
-
-            tr {
-                margin-bottom: 20px;
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                padding: 16px 8px;
-                background: #fff;
-                word-break: break-word;
-                white-space: normal;
-                text-align: center;
-                font-size: 1.1rem;
-            }
-
-            td {
-                padding: 16px 8px 16px 48%;
-                text-align: center;
-                position: relative;
-                border: none;
-                min-height: 32px;
-                word-break: break-word;
-                white-space: normal;
-                font-size: 1.1rem;
-                display: flex;
-                justify-content: center;
-            }
-
-            td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 12px;
-                top: 16px;
-                font-weight: bold;
-                color: #333;
-                white-space: nowrap;
-                font-size: 1rem;
-            }
-
-            #barcode-search,
-            #add-product-form input,
-            #edit-product-form input {
-                width: 100%;
-                font-size: 1rem;
-                padding: 8px 9px;
-            }
-
-            .btn {
-                width: 94%;
-                font-size: 1rem;
-                padding: 9px 0;
-                margin: 12px auto;
-            }
-
-            .modal-content {
-                width: 98%;
-                margin: 60% auto 35% auto;
-                padding: 22px 16px 18px 16px;
-            }
-        }
-
-        @media (max-width: 500px) {
-            .admin-heading {
-                font-size: 1.13rem;
-            }
-
-            .btn {
-                font-size: 0.98rem;
-            }
-
-            table td {
-                font-size: 1rem;
-            }
-
-            #barcode-search {
-                font-size: 0.98rem;
-            }
-        }
-
+        /* Scrollbar Styling */
         ::-webkit-scrollbar {
             width: 7px;
             background: #ffe3c2;
@@ -595,7 +429,7 @@
             border-radius: 4px;
         }
 
-        /* === Utility === */
+        /* Utility */
         label {
             display: block;
             margin-top: 8px;
