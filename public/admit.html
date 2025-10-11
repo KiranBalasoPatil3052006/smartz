@@ -13,8 +13,8 @@
 </head>
 
 <body>
-    <!-- SIDEBAR -->
-    <div class="sidebar" id="sidebar">
+    <!-- SIDEBAR initially closed -->
+    <div class="sidebar closed" id="sidebar">
         <a href="#" onclick="showMainPage()">Home</a>
         <a href="#" onclick="showCustomers()">Customers</a>
         <a href="#" onclick="showProductManagement()">Product Manage</a>
@@ -22,12 +22,14 @@
     </div>
 
     <!-- MENU TOGGLE -->
-    <div class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
-        <span></span><span></span><span></span>
+    <div class="menu-toggle" id="menuToggle" aria-label="Toggle Sidebar" role="button" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="main-content" id="mainContent">
+    <!-- MAIN CONTENT initially with class sidebar-closed -->
+    <div class="main-content sidebar-closed" id="mainContent">
         <div class="container">
             <h1 class="admin-heading">Smart Cart - Admin</h1>
 
@@ -188,6 +190,9 @@
         const barcodeSearchInput = document.getElementById("barcode-search");
         const searchBtn = document.getElementById("search-btn");
         const productTableBody = document.getElementById("product-table-body");
+        const sidebar = document.getElementById("sidebar");
+        const mainContent = document.getElementById("mainContent");
+        const menuToggle = document.getElementById("menuToggle");
 
         function showMessage(msg, type) {
             messageBox.textContent = msg;
@@ -197,14 +202,26 @@
         }
 
         function toggleSidebar() {
-            const sidebar = document.getElementById("sidebar");
-            const mainContent = document.getElementById("mainContent");
-            const menuToggle = document.querySelector(".menu-toggle");
-
-            sidebar.classList.toggle("hidden");
-            mainContent.classList.toggle("active");
+            // Toggle sidebar visibility
+            sidebar.classList.toggle("closed");
             menuToggle.classList.toggle("open");
+            // Adjust main content margin
+            if (sidebar.classList.contains("closed")) {
+                mainContent.classList.add("sidebar-closed");
+            } else {
+                mainContent.classList.remove("sidebar-closed");
+            }
         }
+
+        menuToggle.addEventListener("click", toggleSidebar);
+
+        // Support keyboard toggling hamburger with Enter or Space key
+        menuToggle.addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleSidebar();
+            }
+        });
 
         function resetView() {
             const sections = [
@@ -503,25 +520,10 @@
         document.addEventListener("DOMContentLoaded", () => {
             loadFullPurchaseHistory();
 
-            // For smaller screens, toggle menu toggle button and initial sidebar state
-            function handleResize() {
-                const menuToggle = document.getElementById("menuToggle");
-                const sidebar = document.getElementById("sidebar");
-                const mainContent = document.getElementById("mainContent");
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.add("hidden");
-                    mainContent.classList.add("active");
-                    menuToggle.style.display = "block";
-                    menuToggle.classList.remove("open");
-                } else {
-                    sidebar.classList.remove("hidden");
-                    mainContent.classList.remove("active");
-                    menuToggle.style.display = "none";
-                }
-            }
-
-            handleResize();
-            window.addEventListener("resize", handleResize);
+            // Sidebar is initially closed, hamburger not open visually
+            sidebar.classList.add("closed");
+            mainContent.classList.add("sidebar-closed");
+            menuToggle.classList.remove("open");
         });
     </script>
 </body>
