@@ -91,9 +91,84 @@ const cashierCodeHistorySchema = new mongoose.Schema({
 });
 const CashierCodeHistory = mongoose.model('CashierCodeHistory', cashierCodeHistorySchema);
 
+const productSchema = new mongoose.Schema({
+  barcode: { type: String, required: true, unique: true },
+  name: String,
+  price: Number
+});
+const Product = mongoose.model('Product', productSchema);
+
+
 /* ====================
    📌 ROUTES
 ==================== */
+
+app.post('/product', async (req, res) => {
+  const { barcode, name, price } = req.body;
+  if (!barcode || !name || !price) return res.status(400).json({success:false,message:"Fields missing"});
+  try {
+    // Prevent duplicate barcode
+    let existing = await Product.findOne({ barcode });
+    if (existing) return res.status(400).json({success:false, message:'Barcode already exists'});
+    await Product.create({ barcode, name, price });
+    res.json({success:true, message: 'Product added'});
+  } catch (err) {
+    res.status(500).json({success:false, message:'Server error: '+err.message});
+  }
+});
+
+// Get all products
+app.get('/products', async (req, res) => {
+  try {
+    const products = await Product.find().sort({ name: 1 });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json([]);
+  }
+});
+
+// Get product by barcode
+app.get('/product/:barcode', async (req, res) => {
+  try {
+    const product = await Product.findOne({ barcode: req.params.barcode });
+    if (!product) return res.status(404).json({success:false, message:'Product not found'});
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({success:false, message:err.message});
+  }
+});
+
+// Get product by internal _id (for editing)
+app.get('/product/id/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({success:false, message:'Product not found'});
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({success:false, message:err.message});
+  }
+});
+
+// Update product (edit details)
+app.put('/product/:id', async (req, res) => {
+  const { name, price } = req.body;
+  try {
+    await Product.findByIdAndUpdate(req.params.id, { name, price });
+    res.json({success:true, message:"Product updated"});
+  } catch (err) {
+    res.status(500).json({success:false, message:err.message});
+  }
+});
+
+// Delete product
+app.delete('/product/:id', async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({success:true, message:"Product deleted"});
+  } catch (err) {
+    res.status(500).json({success:false, message:err.message});
+  }
+});
 
 // Product by barcode
 app.get('/product/:barcode', async (req, res) => {
