@@ -9,6 +9,7 @@
     <title>Admin - Dashboard</title>
     <link rel="stylesheet" href="AdmitStyle.css" />
     <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+
 </head>
 
 <body>
@@ -34,6 +35,7 @@
                 <button id="cashier-code-btn" class="btn" onclick="showCashierCodes()">Cashier Codes</button>
             </div>
 
+            <!-- Message -->
             <div id="messageBox"></div>
 
             <!-- Cashier Codes -->
@@ -63,7 +65,7 @@
                 </table>
             </div>
 
-            <!-- Customers -->
+            <!-- Customer Table -->
             <div id="customer-section" style="display:none;">
                 <h2>All Customers</h2>
                 <table>
@@ -113,7 +115,7 @@
             </div>
 
             <!-- Product Management Section -->
-            <div id="product-manage-section" style="display:none;">
+            <div id="product-manage-section">
                 <h2>Product Management</h2>
 
                 <form id="add-product-form">
@@ -158,20 +160,23 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
     <script src="config.js"></script>
-
     <script>
-        const BASE_URL = window.location.origin;
+        // Adjust this BASE_URL as per your backend deployment URL
+        const BASE_URL = window.location.origin; // or "https://smart-cart-app-h47v.onrender.com"
+
         const messageBox = document.getElementById("messageBox");
 
         function showMessage(msg, type) {
             messageBox.textContent = msg;
             messageBox.className = type === "success" ? "success" : "error";
             messageBox.style.display = "block";
-            setTimeout(() => { messageBox.style.display = "none"; }, 3000);
+            setTimeout(() => { messageBox.style.display = "none"; }, 4000);
+            console.log(`[${type}] ${msg}`);
         }
 
         function toggleSidebar() {
@@ -181,131 +186,173 @@
         }
 
         function resetView() {
-            [
+            const sections = [
                 "summary-history-section",
                 "customer-section",
                 "cashier-code-display",
-                "product-manage-section"
-            ].forEach(id => {
-                const el = document.getElementById(id);
+                "product-manage-section",
+            ];
+            sections.forEach(id => {
+                let el = document.getElementById(id);
                 if (el) el.style.display = "none";
             });
 
             document.getElementById("back-btn").style.display = "none";
-            document.getElementById("summary-body").innerHTML = "";
-            document.getElementById("history-body").innerHTML = "";
-            document.getElementById("customer-body").innerHTML = "";
-            document.getElementById("pending-code-body").innerHTML = "";
-            document.getElementById("verified-code-body").innerHTML = "";
-            document.getElementById("product-table-body").innerHTML = "";
-            document.getElementById("barcode-search").value = "";
 
-            const addForm = document.getElementById("add-product-form");
+            // Clear all table bodies
+            const bodies = [
+                "summary-body",
+                "history-body",
+                "customer-body",
+                "pending-code-body",
+                "verified-code-body",
+                "product-table-body"
+            ];
+            bodies.forEach(id => {
+                let b = document.getElementById(id);
+                if (b) b.innerHTML = "";
+            });
+
+            // Reset inputs and forms
+            let addForm = document.getElementById("add-product-form");
             if (addForm) addForm.reset();
-
-            const editForm = document.getElementById("edit-product-form");
+            let editForm = document.getElementById("edit-product-form");
             if (editForm) editForm.reset();
+            let searchInput = document.getElementById("barcode-search");
+            if (searchInput) searchInput.value = "";
         }
 
         function showMainPage() {
             resetView();
-            document.getElementById("summary-history-section").style.display = "block";
+            const el = document.getElementById("summary-history-section");
+            if (el) el.style.display = "block";
             document.getElementById("back-btn").style.display = "none";
             loadFullPurchaseHistory();
         }
 
         function showCustomers() {
             resetView();
-            document.getElementById("customer-section").style.display = "block";
+            const el = document.getElementById("customer-section");
+            if (el) el.style.display = "block";
             fetch(`${BASE_URL}/customers`)
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : Promise.reject(res.status))
                 .then(data => {
-                    const customerBody = document.getElementById("customer-body");
+                    const body = document.getElementById("customer-body");
+                    if (!body) return;
                     data.forEach(c => {
                         const row = document.createElement("tr");
                         row.innerHTML = `<td>${c.name}</td><td>${c.mobile}</td><td>${c.email}</td>`;
-                        customerBody.appendChild(row);
+                        body.appendChild(row);
                     });
                 })
-                .catch(() => showMessage("Failed to load customers", "error"));
+                .catch(err => {
+                    showMessage(`Failed to load customers ${err}`, "error");
+                    console.error(err);
+                });
         }
 
         function showCashPayments() {
             resetView();
-            document.getElementById("summary-history-section").style.display = "block";
+            const el = document.getElementById("summary-history-section");
+            if (el) el.style.display = "block";
             fetch(`${BASE_URL}/purchases/cash`)
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : Promise.reject(res.status))
                 .then(data => renderPurchaseHistory(data))
                 .then(loadPendingCash)
-                .catch(() => showMessage("Failed to load cash payments", "error"));
+                .catch(err => {
+                    showMessage(`Failed to load cash payments ${err}`, "error");
+                    console.error(err);
+                });
         }
 
         function loadPendingCash() {
             fetch(`${BASE_URL}/cash-intents`)
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : Promise.reject(res.status))
                 .then(data => {
-                    const summaryBody = document.getElementById("summary-body");
+                    const body = document.getElementById("summary-body");
+                    if (!body) return;
                     data.forEach(intent => {
                         const row = document.createElement("tr");
-                        row.innerHTML =
-                            `<td>--</td><td>${intent.mobile}</td><td>--</td><td>--</td><td>--</td><td><strong>Pending Cash (${intent.cashierCode})</strong></td>`;
-                        summaryBody.appendChild(row);
+                        row.innerHTML = `<td>--</td><td>${intent.mobile}</td><td>--</td><td>--</td><td>--</td><td><strong>Pending Cash (${intent.cashierCode})</strong></td>`;
+                        body.appendChild(row);
                     });
+                })
+                .catch(err => {
+                    showMessage(`Failed to load pending cash ${err}`, "error");
+                    console.error(err);
                 });
         }
 
         function showOnlinePayments() {
             resetView();
-            document.getElementById("summary-history-section").style.display = "block";
+            const el = document.getElementById("summary-history-section");
+            if (el) el.style.display = "block";
             fetch(`${BASE_URL}/purchases/online`)
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : Promise.reject(res.status))
                 .then(data => renderPurchaseHistory(data))
-                .catch(() => showMessage("Failed to load online payments", "error"));
+                .catch(err => {
+                    showMessage(`Failed to load online payments ${err}`, "error");
+                    console.error(err);
+                });
         }
 
         function showCashierCodes() {
             resetView();
-            document.getElementById("cashier-code-display").style.display = "block";
+            const el = document.getElementById("cashier-code-display");
+            if (el) el.style.display = "block";
 
             fetch(`${BASE_URL}/cash-intents`)
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : Promise.reject(res.status))
                 .then(data => {
-                    const pendingBody = document.getElementById("pending-code-body");
-                    pendingBody.innerHTML = "";
+                    const body = document.getElementById("pending-code-body");
+                    if (!body) return;
+                    body.innerHTML = "";
                     data.forEach(intent => {
                         const row = document.createElement("tr");
-                        row.innerHTML =
-                            `<td>${intent.mobile}</td><td>${intent.cashierCode}</td><td>${new Date(intent.date).toLocaleString()}</td>`;
-                        pendingBody.appendChild(row);
+                        row.innerHTML = `<td>${intent.mobile}</td><td>${intent.cashierCode}</td><td>${new Date(intent.date).toLocaleString()}</td>`;
+                        body.appendChild(row);
                     });
+                })
+                .catch(err => {
+                    showMessage(`Failed to load cash intents ${err}`, "error");
+                    console.error(err);
                 });
 
             fetch(`${BASE_URL}/cashier-code-history`)
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : Promise.reject(res.status))
                 .then(history => {
-                    const verifiedBody = document.getElementById("verified-code-body");
-                    verifiedBody.innerHTML = "";
+                    const body = document.getElementById("verified-code-body");
+                    if (!body) return;
+                    body.innerHTML = "";
                     history.forEach(entry => {
                         const row = document.createElement("tr");
-                        row.innerHTML =
-                            `<td>${entry.mobile}</td><td>${entry.cashierCode}</td><td>${new Date(entry.createdAt).toLocaleString()}</td>`;
-                        verifiedBody.appendChild(row);
+                        row.innerHTML = `<td>${entry.mobile}</td><td>${entry.cashierCode}</td><td>${new Date(entry.createdAt).toLocaleString()}</td>`;
+                        body.appendChild(row);
                     });
+                })
+                .catch(err => {
+                    showMessage(`Failed to load cashier code history ${err}`, "error");
+                    console.error(err);
                 });
         }
 
         function loadFullPurchaseHistory() {
             resetView();
-            document.getElementById("summary-history-section").style.display = "block";
+            const el = document.getElementById("summary-history-section");
+            if (el) el.style.display = "block";
             fetch(`${BASE_URL}/purchase-history`)
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : Promise.reject(res.status))
                 .then(data => renderPurchaseHistory(data))
-                .catch(() => showMessage("Failed to load purchase history", "error"));
+                .catch(err => {
+                    showMessage(`Failed to load purchase history ${err}`, "error");
+                    console.error(err);
+                });
         }
 
         function renderPurchaseHistory(data) {
             const summaryBody = document.getElementById("summary-body");
             const historyBody = document.getElementById("history-body");
+            if (!summaryBody || !historyBody) return;
             summaryBody.innerHTML = "";
             historyBody.innerHTML = "";
 
@@ -314,13 +361,14 @@
                 entry.products.forEach(product => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
-            <td>${entry.name}</td>
-            <td>${product.barcode}</td>
-            <td>${product.name}</td>
-            <td>${product.price}</td>
-            <td>${product.quantity}</td>
-            <td>₹${(product.price * product.quantity).toFixed(2)}</td>
-            <td>${new Date(entry.date).toLocaleDateString()}</td>`;
+          <td>${entry.name}</td>
+          <td>${product.barcode}</td>
+          <td>${product.name}</td>
+          <td>${product.price}</td>
+          <td>${product.quantity}</td>
+          <td>₹${(product.price * product.quantity).toFixed(2)}</td>
+          <td>${new Date(entry.date).toLocaleDateString()}</td>
+        `;
                     historyBody.appendChild(row);
                     total += product.price * product.quantity;
                 });
@@ -328,94 +376,113 @@
                 const date = new Date(entry.date);
                 const summaryRow = document.createElement("tr");
                 summaryRow.innerHTML = `
-          <td>${entry.name}</td>
-          <td>${entry.mobile}</td>
-          <td>${date.toLocaleDateString()}</td>
-          <td>${date.toLocaleTimeString()}</td>
-          <td>₹${total.toFixed(2)}</td>
-          <td>${entry.paymentMethod || 'Cash'} ${entry.paymentMethod === 'cash' ? `(${entry.cashierCode || 'N/A'})` : ''}</td>`;
+        <td>${entry.name}</td>
+        <td>${entry.mobile}</td>
+        <td>${date.toLocaleDateString()}</td>
+        <td>${date.toLocaleTimeString()}</td>
+        <td>₹${total.toFixed(2)}</td>
+        <td>${entry.paymentMethod || 'Cash'} ${entry.paymentMethod === 'cash' ? `(${entry.cashierCode || 'N/A'})` : ''}</td>
+      `;
                 summaryBody.appendChild(summaryRow);
             });
         }
 
+        // Show product management section & back button
         function showProductManagement() {
             resetView();
-            document.getElementById("product-manage-section").style.display = "block";
-            document.getElementById("back-btn").style.display = "inline-block";
+            const el = document.getElementById("product-manage-section");
+            if (el) el.style.display = "block";
+            const backBtn = document.getElementById("back-btn");
+            if (backBtn) backBtn.style.display = "inline-block";
             fetchProducts();
         }
 
+        // Back to main page
         function backToHome() {
             resetView();
-            document.getElementById("summary-history-section").style.display = "block";
-            document.getElementById("back-btn").style.display = "none";
+            const el = document.getElementById("summary-history-section");
+            if (el) el.style.display = "block";
+            const backBtn = document.getElementById("back-btn");
+            if (backBtn) backBtn.style.display = "none";
             loadFullPurchaseHistory();
         }
 
+        // Product management helpers
+
         function clearProductForm() {
-            document.getElementById("add-product-form").reset();
+            const form = document.getElementById("add-product-form");
+            if (form) form.reset();
         }
 
+        // Fetch and render products; optional searchBarcode to show searched first
         function fetchProducts(searchBarcode = null) {
             fetch(`${BASE_URL}/products`)
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : Promise.reject(res.status))
                 .then(products => {
                     const tbody = document.getElementById("product-table-body");
+                    if (!tbody) return;
                     tbody.innerHTML = "";
                     if (searchBarcode) {
                         const found = products.find(p => p.barcode === searchBarcode);
-                        if (found) {
-                            products = [found, ...products.filter(p => p.barcode !== searchBarcode)];
-                        }
+                        if (found) products = [found, ...products.filter(p => p.barcode !== searchBarcode)];
                     }
                     products.forEach(prod => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
-              <td>${prod.barcode}</td>
-              <td>${prod.name}</td>
-              <td>₹${Number(prod.price).toFixed(2)}</td>
-              <td>
-                <button class="btn" onclick="showEditModal('${prod._id}')">Edit</button>
-                <button class="btn" onclick="deleteProduct('${prod._id}')">Delete</button>
-              </td>`;
+            <td data-label="Barcode">${prod.barcode}</td>
+            <td data-label="Name">${prod.name}</td>
+            <td data-label="Price">₹${Number(prod.price).toFixed(2)}</td>
+            <td data-label="Actions">
+              <button class="btn" onclick="showEditModal('${prod._id}')">Edit</button>
+              <button class="btn" onclick="deleteProduct('${prod._id}')">Delete</button>
+            </td>
+          `;
                         tbody.appendChild(row);
                     });
                 })
-                .catch(() => showMessage("Failed to load products", "error"));
+                .catch(err => {
+                    showMessage("Failed to load products", "error");
+                    console.error(err);
+                });
         }
 
+        // Show edit modal and load product data
         function showEditModal(id) {
             fetch(`${BASE_URL}/product/id/${id}`)
-                .then(res => res.json())
+                .then(res => res.ok ? res.json() : Promise.reject(res.status))
                 .then(prod => {
                     document.getElementById("edit-product-id").value = prod._id;
                     document.getElementById("edit-product-name").value = prod.name;
                     document.getElementById("edit-product-barcode").value = prod.barcode;
                     document.getElementById("edit-product-price").value = prod.price;
-                    document.getElementById("edit-modal").style.display = "flex";
+                    const modal = document.getElementById("edit-modal");
+                    if (modal) modal.style.display = "flex";
                 })
-                .catch(() => showMessage("Failed to load product details", "error"));
+                .catch(err => {
+                    showMessage("Failed to load product details", "error");
+                    console.error(err);
+                });
         }
 
         function closeEditModal() {
-            document.getElementById("edit-modal").style.display = "none";
+            const modal = document.getElementById("edit-modal");
+            if (modal) modal.style.display = "none";
         }
 
+        // Add product form submit handler
         document.getElementById("add-product-form").addEventListener("submit", e => {
             e.preventDefault();
             const name = document.getElementById("product-name").value.trim();
             const barcode = document.getElementById("product-barcode").value.trim();
             const price = parseFloat(document.getElementById("product-price").value);
-
             if (!name || !barcode || isNaN(price)) {
                 showMessage("Please enter valid product details", "error");
                 return;
             }
-
             fetch(`${BASE_URL}/product`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, barcode, price }),
+                body: JSON.stringify({ name, barcode, price })
             })
                 .then(res => res.json())
                 .then(data => {
@@ -428,21 +495,20 @@
                 .catch(() => showMessage("Error adding product", "error"));
         });
 
+        // Edit product form submit handler
         document.getElementById("edit-product-form").addEventListener("submit", e => {
             e.preventDefault();
             const id = document.getElementById("edit-product-id").value;
             const name = document.getElementById("edit-product-name").value.trim();
             const price = parseFloat(document.getElementById("edit-product-price").value);
-
             if (!name || isNaN(price)) {
                 showMessage("Please enter valid details for update", "error");
                 return;
             }
-
             fetch(`${BASE_URL}/product/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, price }),
+                body: JSON.stringify({ name, price })
             })
                 .then(res => res.json())
                 .then(data => {
@@ -455,6 +521,7 @@
                 .catch(() => showMessage("Error updating product", "error"));
         });
 
+        // Delete product
         function deleteProduct(id) {
             if (!confirm("Confirm product deletion?")) return;
             fetch(`${BASE_URL}/product/${id}`, { method: "DELETE" })
@@ -466,16 +533,21 @@
                 .catch(() => showMessage("Error deleting product", "error"));
         }
 
+        // Search input event
         document.getElementById("barcode-search").addEventListener("input", e => {
             const q = e.target.value.trim();
-            if (q.length === 12 && /^\d+$/.test(q)) {
-                fetchProducts(q);
-            } else if (q.length === 0) {
-                fetchProducts();
-            }
+            if (q.length === 12 && /^\d+$/.test(q)) fetchProducts(q);
+            else if (q.length === 0) fetchProducts();
         });
 
+        // Back button
+        document.getElementById("back-btn").addEventListener("click", backToHome);
+
+        // Initialize dashboard on load
         document.addEventListener("DOMContentLoaded", showMainPage);
+        window.onclick = function (event) {
+            if (event.target == document.getElementById("edit-modal")) closeEditModal();
+        }
     </script>
 </body>
 
