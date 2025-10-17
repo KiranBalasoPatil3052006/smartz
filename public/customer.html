@@ -22,7 +22,7 @@
             --sidebar-hover-bg: #EAEAEA;
             --sidebar-accent: #3366CC;
             --bottom-nav-height: 70px;
-            --scan-button-height: 60px;
+            --scan-button-height: 70px;
             /* Adjusted for bigger buttons */
         }
 
@@ -313,8 +313,7 @@
             border: 2px solid var(--primary-color);
             border-radius: 20px;
             width: 100%;
-            height: 250px;
-            position: sticky;
+            height: auto;
         }
 
         .list-content {
@@ -327,6 +326,7 @@
             color: var(--primary-color);
         }
 
+        /* ===== UPDATED RESPONSIVE TABLE ===== */
         #product-table {
             border-collapse: collapse;
             width: 100%;
@@ -360,9 +360,9 @@
 
         #scan-btn,
         #stop-scan-btn {
-            padding: 15px 30px;
+            padding: 18px 35px;
             /* Increased padding */
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             /* Increased font size */
             font-weight: bold;
             border: none;
@@ -476,50 +476,22 @@
                 max-height: 220px;
             }
 
-            #product-table thead {
-                display: none;
-            }
-
-            #product-table,
-            #product-table tbody,
-            #product-table tr,
-            #product-table td {
+            /* UPDATED: Horizontal scroll for table on mobile */
+            #product-table {
                 display: block;
-                width: 100%;
+                overflow-x: auto;
+                white-space: nowrap;
             }
 
-            #product-table tr {
-                margin-bottom: 15px;
-                border: 2px solid var(--primary-color);
-                border-radius: 8px;
-                padding: 10px;
-                background: white;
-            }
-
+            #product-table th,
             #product-table td {
-                text-align: right;
-                padding-left: 50%;
-                position: relative;
-                border: none;
-                padding-top: 8px;
-                padding-bottom: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: flex-end;
-            }
-
-            #product-table td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 10px;
-                width: 45%;
-                padding-right: 10px;
-                font-weight: bold;
-                text-align: left;
+                padding: 8px 10px;
+                font-size: 0.9rem;
             }
 
             .qty-wrapper {
-                justify-content: flex-end;
+                justify-content: center;
+                /* Center buttons in cell */
             }
         }
 
