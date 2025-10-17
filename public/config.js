@@ -5,4 +5,4 @@ const isLocalhost = window.location.hostname === "localhost" || window.location.
 
 const BASE_URL = isLocalhost
   ? "http://localhost:5000"         // Local backend
-  : "https://smartz.onrender.com";  // Render backend
+  : "https://smartz-izv7.onrender.com";  // Render backend
