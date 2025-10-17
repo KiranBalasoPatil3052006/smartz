@@ -2,346 +2,1081 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Cart</title>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
-  <link rel="stylesheet" href="CustomerStyle.css">
-  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Cart</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/@ericblade/quagga2@1.2.6/dist/quagga.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
 
-  <style>
+    <style>
+        /* ===== Base Styles ===== */
+        :root {
+            --primary-color: #000B58;
+            --background-color: #F5F5F5;
+            --header-bg: #000B58;
+            --header-text: #FFFFFF;
+            --sidebar-bg: #F5F5F5;
+            --sidebar-text: #000B58;
+            --sidebar-hover-bg: #EAEAEA;
+            --sidebar-accent: #3366CC;
+            --bottom-nav-height: 70px;
+            --scan-button-height: 60px;
+            /* Adjusted for bigger buttons */
+        }
 
-  </style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            padding-top: 80px;
+            padding-bottom: calc(var(--bottom-nav-height) + var(--scan-button-height) + 20px);
+            overflow-x: hidden;
+        }
+
+        /* ===== Top Bar (Header) ===== */
+        .top-bar {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: 60px;
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            border-radius: 30px;
+        }
+
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--header-text);
+            color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* ===== Hamburger Menu (for Desktop) ===== */
+        .menu-toggle {
+            cursor: pointer;
+            z-index: 1001;
+            width: 30px;
+            height: 30px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-toggle span {
+            display: block;
+            width: 24px;
+            height: 3px;
+            background-color: var(--header-text);
+            margin: 4px 0;
+            border-radius: 2px;
+            transition: 0.4s;
+            transform-origin: center;
+        }
+
+        .menu-toggle.open span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .menu-toggle.open span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-toggle.open span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* ===== Sidebar ===== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            display: none;
+            flex-direction: column;
+        }
+
+        nav.active {
+            left: 0;
+        }
+
+        .sidebar-top {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        #sidebar-close-btn {
+            display: none;
+        }
+
+        #sidebar-close-btn span {
+            background-color: var(--sidebar-text);
+        }
+
+        #sidebar-close-btn span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        #sidebar-close-btn span:nth-child(2) {
+            opacity: 0;
+        }
+
+        #sidebar-close-btn span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            border-bottom: 1px solid #0000001a;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 15px 0;
+        }
+
+        nav ul li {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--sidebar-text);
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-icon {
+            width: 22px;
+            height: 22px;
+            stroke: var(--sidebar-text);
+            stroke-width: 2;
+            fill: none;
+            transition: all 0.2s ease;
+        }
+
+        nav ul li:hover {
+            background-color: var(--sidebar-hover-bg);
+            color: var(--sidebar-accent);
+            border-left: 4px solid var(--sidebar-accent);
+        }
+
+        nav ul li:hover .sidebar-icon {
+            stroke: var(--sidebar-accent);
+            transform: scale(1.1);
+        }
+
+        nav ul li.active {
+            background-color: var(--sidebar-hover-bg);
+            color: var(--sidebar-accent);
+            font-weight: bold;
+            border-left: 4px solid var(--sidebar-accent);
+        }
+
+        nav ul li.active .sidebar-icon {
+            stroke: var(--sidebar-accent);
+        }
+
+        /* ===== Main Content ===== */
+        .main-content {
+            padding: 20px;
+            transition: filter 0.3s ease-in-out;
+        }
+
+        .main-content.blur {
+            filter: blur(5px);
+        }
+
+        #initial-message {
+            text-align: center;
+            margin-top: 30vh;
+            transform: translateY(-50%);
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        /* ===== Customer Info Modal ===== */
+        .customer-info-modal {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            width: 90%;
+            max-width: 400px;
+            background: var(--sidebar-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1002;
+            border: 2px solid var(--primary-color);
+            opacity: 0;
+            transform: translate(-50%, -20px) scale(0.95);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            visibility: hidden;
+        }
+
+        .customer-info-modal.show {
+            opacity: 1;
+            transform: translate(-50%, 0) scale(1);
+            visibility: visible;
+        }
+
+        .customer-info-modal .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #555;
+        }
+
+        #customer-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--primary-color);
+        }
+
+        #customer-info-table td {
+            padding: 8px 0;
+            border: none;
+            font-size: 1.1rem;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1001;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* ===== Scanner & Product List ===== */
+        #scanner-container {
+            margin: 30px auto 0 auto;
+            width: 100%;
+        }
+
+        #video {
+            border: 2px solid var(--primary-color);
+            border-radius: 20px;
+            width: 100%;
+            height: 250px;
+            position: sticky;
+        }
+
+        .list-content {
+            margin-top: 10px;
+        }
+
+        .list-head {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        #product-table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 600px;
+            margin: 10px auto;
+        }
+
+        #product-table th,
+        #product-table td {
+            border: 3px solid var(--primary-color);
+            padding: 8px;
+            text-align: center;
+        }
+
+        #product-table th {
+            background-color: #EAEAEA;
+        }
+
+        .payment-buttons {
+            display: flex;
+            justify-content: space-evenly;
+            margin-top: 10px;
+        }
+
+        /* ===== UPDATED BUTTONS (Bigger Size) ===== */
+        .scan-buttons-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        #scan-btn,
+        #stop-scan-btn {
+            padding: 15px 30px;
+            /* Increased padding */
+            font-size: 1.2rem;
+            /* Increased font size */
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        #scan-btn {
+            background-color: #3366CC;
+            color: white;
+            display: block;
+        }
+
+        #stop-scan-btn {
+            background-color: #D32F2F;
+            color: white;
+            display: none;
+        }
+
+        #scan-btn:hover {
+            background-color: #2851A3;
+            transform: translateY(-2px);
+        }
+
+        #stop-scan-btn:hover {
+            background-color: #AA2525;
+            transform: translateY(-2px);
+        }
+
+        #cash-btn,
+        #online-btn {
+            background-color: var(--primary-color);
+            color: var(--header-text);
+            border: 2px solid var(--primary-color);
+            font-weight: 600;
+            border-radius: 9px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            padding: 10px 20px;
+        }
+
+        #cash-btn:hover,
+        #online-btn:hover {
+            background-color: var(--background-color);
+            color: var(--primary-color);
+        }
+
+        /* ===== Bottom Nav ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--bottom-nav-height);
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            display: flex;
+            justify-content: space-around;
+            z-index: 999;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            height: 100%;
+            transition: color 0.2s ease;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            stroke: var(--header-text);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            transition: stroke 0.2s ease-in-out;
+        }
+
+        .nav-item.active {
+            color: var(--sidebar-accent);
+        }
+
+        .nav-item.active .nav-icon {
+            stroke: var(--sidebar-accent);
+        }
+
+        /* ===== Mobile Specific Styles ===== */
+        @media (max-width: 768px) {
+            .scan-buttons-wrapper {
+                position: fixed;
+                bottom: var(--bottom-nav-height);
+                left: 0;
+                width: 100%;
+                padding: 10px 20px;
+                background-color: var(--background-color);
+                z-index: 998;
+            }
+
+            #video {
+                max-height: 220px;
+            }
+
+            #product-table thead {
+                display: none;
+            }
+
+            #product-table,
+            #product-table tbody,
+            #product-table tr,
+            #product-table td {
+                display: block;
+                width: 100%;
+            }
+
+            #product-table tr {
+                margin-bottom: 15px;
+                border: 2px solid var(--primary-color);
+                border-radius: 8px;
+                padding: 10px;
+                background: white;
+            }
+
+            #product-table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border: none;
+                padding-top: 8px;
+                padding-bottom: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+            }
+
+            #product-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 45%;
+                padding-right: 10px;
+                font-weight: bold;
+                text-align: left;
+            }
+
+            .qty-wrapper {
+                justify-content: flex-end;
+            }
+        }
+
+        /* ===== Desktop Specific Styles ===== */
+        @media (min-width: 769px) {
+            body {
+                padding-bottom: 20px;
+            }
+
+            .menu-toggle,
+            nav,
+            #sidebar-close-btn {
+                display: flex;
+            }
+
+            .bottom-nav {
+                display: none;
+            }
+
+            .scan-buttons-wrapper {
+                margin-top: 20px;
+            }
+
+            #scanner-container {
+                max-width: 450px;
+            }
+        }
+
+        .qty-btn {
+            margin: 0 4px;
+            padding: 4px 8px;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--primary-color);
+            background-color: white;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .qty-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .qty-value {
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .drawingBuffer {
+            display: none;
+        }
+
+        #verify-section {
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            margin: 30px auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        #verify-section label {
+            display: block;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        #verify-section input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        #verify-section button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            margin: 0 10px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #verify-section button:hover {
+            background-color: var(--sidebar-accent);
+        }
+    </style>
 </head>
 
 <body>
-  <center>
-    <h1 class="heading">Smart Cart</h1>
-  </center>
+    <header class="top-bar">
+        <div class="top-bar-left">
+            <div class="menu-toggle" onclick="toggleMenu()">
+                <span></span><span></span><span></span>
+            </div>
+            <span class="brand-name">Smart Cart</span>
+        </div>
+        <div class="profile-icon" id="profileBtn">P</div>
+    </header>
 
-  <div class="container">
-    <div>
-      <div class="menu-toggle" onclick="toggleMenu()">
-        <span></span><span></span><span></span>
-      </div>
-      <nav id="sideMenu">
+    <nav id="sideMenu">
+        <div class="sidebar-top">
+            <div class="menu-toggle" id="sidebar-close-btn">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="sidebar-header">
+            <h3>Smart Cart</h3>
+        </div>
         <ul>
-          <li>Home</li>
-          <li>About Us</li>
-          <li>Contact</li>
-          <li onclick="MovetoExit()">Exit</li>
+            <li class="active">
+                <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span>Home</span>
+            </li>
+            <li>
+                <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span>About Us</span>
+            </li>
+            <li>
+                <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path
+                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                    </path>
+                </svg>
+                <span>Contact</span>
+            </li>
+            <li onclick="MovetoExit()">
+                <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Logout</span>
+            </li>
         </ul>
-      </nav>
-    </div>
-    <div class="page">
-      <!-- Example section at the top of customer.html -->
-      <div id="customer-info"
-        style="border-radius: 10px; font-size: 1.1rem; font-weight: 500; color: #350410;border: #350410 2px solid;">
-        <table style="background-color: white; border-radius: 10px; border: none; border-collapse: collapse;">
-          <tr>
-            <td style="padding: 6px 12px; border: none;"><strong>Name:</strong></td>
-            <td style="padding: 6px 12px; border: none;"><span id="cust-name"></span></td>
-          </tr>
-          <tr>
-            <td style="padding: 6px 12px; border: none;"><strong>Mobile:</strong></td>
-            <td style="padding: 6px 12px; border: none;"><span id="cust-mobile"></span></td>
-          </tr>
-          <tr>
-            <td style="padding: 6px 12px; border: none;"><strong>Email:</strong></td>
-            <td style="padding: 6px 12px; border: none;"><span id="cust-email"></span></td>
-          </tr>
-        </table>
-      </div>
+    </nav>
 
-      <div id="scanner-container" style="display: none;">
-        <video id="video" width="100%" autoplay></video>
-      </div>
-      <div class="list-content">
-        <h3 class="list-head">Product List</h3>
-        <table id="product-table" style=" border-radius: 10px; border: none; border-collapse: collapse;">
-          <thead>
+    <div id="pageOverlay" class="overlay"></div>
+
+    <div id="customer-info" class="customer-info-modal">
+        <button class="close-btn" id="closeProfileBtn">&times;</button>
+        <table id="customer-info-table">
             <tr>
-              <th>Sno</th>
-              <th>Name</th>
-              <th>Price</th>
-              <th>Qty</th>
-              <th>Total</th>
-              <th>Action</th>
+                <td><strong>Name:</strong></td>
+                <td><span id="cust-name"></span></td>
             </tr>
-          </thead>
-          <tbody id="product-list"></tbody>
+            <tr>
+                <td><strong>Mobile:</strong></td>
+                <td><span id="cust-mobile"></span></td>
+            </tr>
+            <tr>
+                <td><strong>Email:</strong></td>
+                <td><span id="cust-email"></span></td>
+            </tr>
         </table>
-        <h3 class="list-head">Total: ₹<span id="total-amount">0.00</span></h3>
-        <div class="scan-buttons">
-          <button id="scan-btn">Start Scanning Product</button>
-          <button id="stop-scan-btn" style="display: none;">Stop Scanning</button>
-        </div>
-        <div id="cashier-code-section" style="display: none;">
-          <label for="cashier-code">Enter Cashier Code:</label>
-          <input type="text" id="cashier-code" placeholder="Cashier Code" required />
-        </div>
-
-        <div class="payment-buttons" id="payment-buttons" style="display: none;">
-          <button onclick="handleCashPay()" id="cash-btn">Cash Pay</button>
-          <button onclick="handleOnlinePay()" id="online-btn">Online Pay</button>
-        </div>
-
-        <!-- Message box -->
-        <div id="messageBox"></div>
-      </div>
-
-      <!-- Cashier Verification Section -->
-      <div id="verify-section" style="display: none; margin-top: 20px;">
-        <label for="cashier-code">Enter Cashier Code:</label>
-        <input type="text" id="verify-cashier-code" placeholder="Cashier Code" required />
-        <button onclick="verifyCashierCodeAndDownload()">Verify</button>
-        <button onclick="backToProductList()">Back</button>
-      </div>
     </div>
-  </div>
-  <script src="config.js"></script>
 
-  <script>
-    const customerName = localStorage.getItem("customerName");
-    const customerNumber = localStorage.getItem("customerNumber");
-    const customerEmail = localStorage.getItem("customerEmail");
-
-    document.getElementById("cust-name").textContent = customerName || "Unknown";
-    document.getElementById("cust-mobile").textContent = customerNumber || "Unknown";
-    document.getElementById("cust-email").textContent = customerEmail || "Unknown";
-
-    const messageBox = document.getElementById("messageBox");
-
-    function showMessage(message, type) {
-      messageBox.textContent = message;
-      messageBox.className = "";
-      if (type === "success") messageBox.classList.add("success");
-      else messageBox.classList.add("error");
-    }
-
-    function MovetoExit() {
-      window.location.href = "CustomerLogin.html";
-    }
-
-    function toggleMenu() {
-      const menu = document.getElementById("sideMenu");
-      const toggle = document.querySelector(".menu-toggle");
-      menu.classList.toggle("active");
-      toggle.classList.toggle("open");
-    }
-
-    // Product scanning variables
-    const scannedProducts = {};
-    let lastScannedCode = null;
-    let scanCooldown = false;
-
-    const scanBtn = document.getElementById('scan-btn');
-    const stopScanBtn = document.getElementById('stop-scan-btn');
-    const scannerContainer = document.getElementById('scanner-container');
-    const productList = document.getElementById('product-list');
-
-    scanBtn.addEventListener('click', () => {
-      scannerContainer.style.display = 'block';
-      scanBtn.style.display = 'none';
-      stopScanBtn.style.display = 'inline-block';
-      startScanner();
-    });
-
-    stopScanBtn.addEventListener('click', () => {
-      stopScanner();
-      scannerContainer.style.display = 'none';
-      scanBtn.style.display = 'inline-block';
-      stopScanBtn.style.display = 'none';
-    });
-
-    function startScanner() {
-      Quagga.init({
-        inputStream: {
-          name: "Live",
-          type: "LiveStream",
-          target: document.querySelector('#scanner-container'),
-          constraints: { facingMode: "environment" }
-        },
-        decoder: {
-          readers: ["upc_reader", "ean_reader", "code_128_reader"]
-        }
-      }, function (err) {
-        if (err) { console.error("Scanner init error:", err); return; }
-        Quagga.start();
-      });
-
-      Quagga.onDetected(onDetectedHandler);
-    }
-
-    function stopScanner() {
-      Quagga.stop();
-      Quagga.offDetected(onDetectedHandler);
-    }
-
-    function onDetectedHandler(result) {
-      const code = result.codeResult.code;
-      if (scanCooldown || code === lastScannedCode) return;
-      scanCooldown = true;
-      lastScannedCode = code;
-      fetchProduct(code);
-      setTimeout(() => { scanCooldown = false; }, 1000);
-    }
-
-    function fetchProduct(barcode) {
-      fetch(`${BASE_URL}/product/${barcode}`)
-        .then(res => res.json())
-        .then(product => {
-          if (!product || !product.name) return;
-          if (scannedProducts[barcode]) scannedProducts[barcode].quantity += 1;
-          else scannedProducts[barcode] = { ...product, quantity: 1, barcode };
-          renderProductList();
-        })
-        .catch(err => console.error("Error fetching product:", err));
-    }
-
-    function renderProductList() {
-      productList.innerHTML = '';
-      let grandTotal = 0;
-      Object.values(scannedProducts).forEach((p, index) => {
-        const total = p.price * p.quantity;
-        grandTotal += total;
-        const row = `<tr class="width-increase">
-      <td>${index + 1}</td>
-      <td>${p.name}</td>
-      <td>₹${p.price}</td>
-      <td>
-        <div class="qty-wrapper">
-          <button class="qty-btn" onclick="updateQty('${p.barcode}', -1)">-</button>
-          <span class="qty-value">${p.quantity}</span>
-          <button class="qty-btn" onclick="updateQty('${p.barcode}', 1)">+</button>
+    <main class="main-content" id="mainContent">
+        <div id="initial-message">
+            <p>Scan the barcode for purchase.</p>
         </div>
-      </td>
-      <td>₹${total}</td>
-      <td><button onclick="removeProduct('${p.barcode}')">Delete</button></td>
-    </tr>`;
-        productList.innerHTML += row;
-      });
-      document.getElementById('total-amount').textContent = grandTotal.toFixed(2);
-      document.getElementById("payment-buttons").style.display = Object.keys(scannedProducts).length > 0 ? "flex" : "none";
-    }
+        <div id="scanner-container" style="display: none;">
+            <video id="video" autoplay></video>
+        </div>
+        <div class="list-content" style="display: none;">
+            <h3 class="list-head">Product List</h3>
+            <table id="product-table">
+                <thead>
+                    <tr>
+                        <th>Sno</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="product-list"></tbody>
+            </table>
+            <h3 class="list-head">Total: ₹<span id="total-amount">0.00</span></h3>
+            <div class="payment-buttons" id="payment-buttons" style="display: none;">
+                <button onclick="handleCashPay()" id="cash-btn">Cash Pay</button>
+                <button onclick="handleOnlinePay()" id="online-btn">Online Pay</button>
+            </div>
+            <div id="messageBox"></div>
+        </div>
 
-    function updateQty(barcode, change) {
-      if (scannedProducts[barcode]) {
-        scannedProducts[barcode].quantity += change;
-        if (scannedProducts[barcode].quantity <= 0) delete scannedProducts[barcode];
-        renderProductList();
-      }
-    }
+        <div class="scan-buttons-wrapper">
+            <button id="scan-btn">Start Scanning</button>
+            <button id="stop-scan-btn">Stop Scanning</button>
+        </div>
 
-    function removeProduct(barcode) {
-      delete scannedProducts[barcode];
-      renderProductList();
-    }
+        <div id="verify-section" style="display: none; margin-top: 20px;">
+            <label for="cashier-code">Enter Cashier Code:</label>
+            <input type="text" id="verify-cashier-code" placeholder="Cashier Code" required />
+            <button onclick="verifyCashierCodeAndDownload()">Verify</button>
+            <button onclick="backToProductList()">Back</button>
+        </div>
+    </main>
 
-    // Save purchase to backend
-    async function savePurchase(paymentMethod, cashierCode = '') {
-      const products = Object.values(scannedProducts).map(p => ({
-        barcode: p.barcode,
-        name: p.name,
-        price: p.price,
-        quantity: p.quantity
-      }));
-      const payload = {
-        name: customerName,
-        mobile: customerNumber,
-        email: customerEmail,
-        products,
-        paymentMethod,
-        cashierCode
-      };
-      await fetch(`${BASE_URL}/purchase`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-    }
+    <div class="bottom-nav">
+        <div class="nav-item">
+            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Home
+        </div>
+        <div class="nav-item" id="bottomNavAbout">
+            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            About
+        </div>
+        <div class="nav-item">
+            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                </path>
+            </svg>
+            Contact
+        </div>
+        <div class="nav-item" onclick="MovetoExit()">
+            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Logout
+        </div>
+    </div>
 
-    // Cash payment flow
-    async function handleCashPay() {
-      const payload = { name: customerName, mobile: customerNumber };
-      const response = await fetch(`${BASE_URL}/cash-intent`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const result = await response.json();
-      if (result.success) {
-        const code = result.cashierCode;
-        localStorage.setItem("expectedCashierCode", code);
-        document.querySelector('.list-content').style.display = 'none';
-        document.getElementById('verify-section').style.display = 'block';
-        scannerContainer.style.display = 'none';
-        showMessage("Cash payment initiated. Please verify cashier code.", "success");
-      } else showMessage("❌ Failed to initiate cash payment.", "error");
-    }
+    <script src="config.js"></script>
+    <script>
+        const profileBtn = document.getElementById('profileBtn');
+        const bottomNavAboutBtn = document.getElementById('bottomNavAbout'); // Corrected ID
+        const closeProfileBtn = document.getElementById('closeProfileBtn');
+        const customerInfoModal = document.getElementById('customer-info');
+        const pageOverlay = document.getElementById('pageOverlay');
+        const mainContent = document.getElementById('mainContent');
+        const initialMessage = document.getElementById('initial-message');
+        const listContent = document.querySelector('.list-content');
+        const scanBtn = document.getElementById('scan-btn');
+        const stopScanBtn = document.getElementById('stop-scan-btn');
+        const scannerContainer = document.getElementById('scanner-container');
+        const productList = document.getElementById('product-list');
+        const messageBox = document.getElementById("messageBox");
+        const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+        const navItems = document.querySelectorAll('.nav-item');
 
-    function backToProductList() {
-      document.querySelector('.list-content').style.display = 'block';
-      scannerContainer.style.display = 'block';
-      document.getElementById('verify-section').style.display = 'none';
-    }
+        // Event Listeners
+        profileBtn.addEventListener('click', toggleProfileModal);
+        // NOTE: The 'About' button is now separate and does not open the profile modal.
+        // You can add a new function for it here if needed, e.g., bottomNavAboutBtn.addEventListener('click', showAboutPage);
+        closeProfileBtn.addEventListener('click', toggleProfileModal);
+        pageOverlay.addEventListener('click', toggleProfileModal);
 
-    async function verifyCashierCodeAndDownload() {
-      const enteredCode = document.getElementById("verify-cashier-code").value;
-      const response = await fetch(`${BASE_URL}/verify-cashier-code`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile: customerNumber, cashierCode: enteredCode })
-      });
-      const result = await response.json();
-      if (result.success) {
-        await savePurchase("cash", enteredCode);
-        await generatePDFReceipt();
-        showMessage("✅ Payment verified! Receipt downloaded.", "success");
-        setTimeout(() => window.location.reload(), 2000);
-      } else showMessage("❌ " + result.message, "error");
-    }
+        scanBtn.addEventListener('click', () => {
+            scannerContainer.style.display = 'block';
+            scanBtn.style.display = 'none';
+            stopScanBtn.style.display = 'block';
+            initialMessage.style.display = 'none';
+            listContent.style.display = 'block';
+            startScanner();
+        });
 
-    // Online payment
-    async function handleOnlinePay() {
-      const total = document.getElementById('total-amount').textContent;
-      window.location.href = `upi://pay?pa=merchant@upi&pn=SmartCart&am=${total}&cu=INR`;
-      setTimeout(async () => {
-        await savePurchase("online");
-        await generatePDFReceipt();
-        showMessage("✅ Online Payment Successful! Receipt downloaded.", "success");
-        setTimeout(() => window.location.reload(), 2000);
-      }, 3000);
-    }
+        stopScanBtn.addEventListener('click', () => {
+            stopScanner();
+            scannerContainer.style.display = 'none';
+            scanBtn.style.display = 'block';
+            stopScanBtn.style.display = 'none';
+            if (Object.keys(scannedProducts).length === 0) {
+                listContent.style.display = 'none';
+                initialMessage.style.display = 'block';
+            }
+        });
 
-    // PDF receipt generation
-    async function generatePDFReceipt() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text("Smart Cart Receipt", 70, 10);
-      doc.setFontSize(12);
-      doc.text("==========================================", 10, 15);
-      let y = 25;
-      doc.text("Barcode       Name        Price   Qty   Total", 10, y);
-      y += 10;
-      let grandTotal = 0;
-      for (const [barcode, product] of Object.entries(scannedProducts)) {
-        const line = `${barcode}  ${product.name}  ₹${product.price.toFixed(2)}  ${product.quantity}  ₹${(product.price * product.quantity).toFixed(2)}`;
-        doc.text(line, 10, y);
-        y += 8;
-        grandTotal += product.price * product.quantity;
-      }
-      y += 10;
-      doc.text(`Total Amount: ₹${grandTotal.toFixed(2)}`, 10, y);
-      y += 20;
-      doc.text("Thank you for shopping with us!", 50, y);
-      doc.save("receipt.pdf");
-    }
-  </script>
+        sidebarCloseBtn.addEventListener('click', toggleMenu);
 
+        navItems.forEach((item, index) => {
+            if (index === 0) item.classList.add('active');
+            item.addEventListener('click', () => {
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        // Functions
+        function toggleMenu() {
+            document.getElementById("sideMenu").classList.toggle("active");
+            document.querySelector(".menu-toggle").classList.toggle("open");
+        }
+
+        function toggleProfileModal() {
+            customerInfoModal.classList.toggle('show');
+            pageOverlay.classList.toggle('show');
+            mainContent.classList.toggle('blur');
+        }
+
+        const customerName = localStorage.getItem("customerName"),
+            customerNumber = localStorage.getItem("customerNumber"),
+            customerEmail = localStorage.getItem("customerEmail");
+
+        document.getElementById("cust-name").textContent = customerName || "Unknown";
+        document.getElementById("cust-mobile").textContent = customerNumber || "Unknown";
+        document.getElementById("cust-email").textContent = customerEmail || "Unknown";
+
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = "";
+            if (type === "success") messageBox.classList.add("success");
+            else messageBox.classList.add("error");
+        }
+
+        function MovetoExit() {
+            window.location.href = "CustomerLogin.html";
+        }
+
+        // Product Scanning
+        const scannedProducts = {};
+        let lastScannedCode = null,
+            scanCooldown = false;
+
+        function startScanner() {
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector("#scanner-container"),
+                    constraints: { facingMode: "environment" }
+                },
+                decoder: { readers: ["upc_reader", "ean_reader", "code_128_reader"] }
+            }, err => {
+                if (err) {
+                    console.error("Scanner init error:", err);
+                    return;
+                }
+                Quagga.start();
+            });
+            Quagga.onDetected(onDetectedHandler);
+        }
+
+        function stopScanner() {
+            if (typeof Quagga !== 'undefined' && Quagga.running) {
+                Quagga.stop();
+            }
+        }
+
+        function onDetectedHandler(result) {
+            const code = result.codeResult.code;
+            if (scanCooldown || code === lastScannedCode) return;
+            scanCooldown = true;
+            lastScannedCode = code;
+            fetchProduct(code);
+            setTimeout(() => { scanCooldown = false }, 1000);
+        }
+
+        function fetchProduct(barcode) {
+            fetch(`${BASE_URL}/product/${barcode}`)
+                .then(res => res.json())
+                .then(product => {
+                    if (!product || !product.name) return;
+                    if (scannedProducts[barcode])
+                        scannedProducts[barcode].quantity += 1;
+                    else
+                        scannedProducts[barcode] = { ...product, quantity: 1, barcode };
+                    renderProductList();
+                })
+                .catch(err => console.error("Error fetching product:", err));
+        }
+
+        function renderProductList() {
+            initialMessage.style.display = "none";
+            listContent.style.display = "block";
+            productList.innerHTML = "";
+            let grandTotal = 0;
+
+            Object.values(scannedProducts).forEach((p, index) => {
+                const total = p.price * p.quantity;
+                grandTotal += total;
+                const row = `
+            <tr>
+                <td data-label="Sno">${index + 1}</td>
+                <td data-label="Name">${p.name}</td>
+                <td data-label="Price">₹${p.price.toFixed(2)}</td>
+                <td data-label="Qty">
+                    <div class="qty-wrapper">
+                        <button class="qty-btn" onclick="updateQty('${p.barcode}', -1)">-</button>
+                        <span class="qty-value">${p.quantity}</span>
+                        <button class="qty-btn" onclick="updateQty('${p.barcode}', 1)">+</button>
+                    </div>
+                </td>
+                <td data-label="Total">₹${total.toFixed(2)}</td>
+                <td data-label="Action">
+                    <button onclick="removeProduct('${p.barcode}')">Delete</button>
+                </td>
+            </tr>`;
+                productList.innerHTML += row;
+            });
+
+            document.getElementById("total-amount").textContent = grandTotal.toFixed(2);
+            document.getElementById("payment-buttons").style.display =
+                Object.keys(scannedProducts).length > 0 ? "flex" : "none";
+        }
+
+        function updateQty(barcode, change) {
+            if (scannedProducts[barcode]) {
+                scannedProducts[barcode].quantity += change;
+                if (scannedProducts[barcode].quantity <= 0)
+                    delete scannedProducts[barcode];
+                renderProductList();
+            }
+        }
+
+        function removeProduct(barcode) {
+            delete scannedProducts[barcode];
+            renderProductList();
+        }
+
+        // Save Purchase
+        async function savePurchase(paymentMethod, cashierCode = "") {
+            const products = Object.values(scannedProducts).map(p => ({
+                barcode: p.barcode,
+                name: p.name,
+                price: p.price,
+                quantity: p.quantity
+            }));
+
+            const payload = {
+                name: customerName,
+                mobile: customerNumber,
+                email: customerEmail,
+                products,
+                paymentMethod,
+                cashierCode
+            };
+
+            await fetch(`${BASE_URL}/purchase`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+        }
+
+        // Cash Payment Flow
+        async function handleCashPay() {
+            const payload = { name: customerName, mobile: customerNumber };
+            const response = await fetch(`${BASE_URL}/cash-intent`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                localStorage.setItem("expectedCashierCode", result.cashierCode);
+                document.querySelector(".list-content").style.display = "none";
+                document.getElementById("verify-section").style.display = "block";
+                scannerContainer.style.display = "none";
+                showMessage("Cash payment initiated. Please verify cashier code.", "success");
+            } else {
+                showMessage("❌ Failed to initiate cash payment.", "error");
+            }
+        }
+
+        function backToProductList() {
+            document.querySelector(".list-content").style.display = "block";
+            scannerContainer.style.display = "block";
+            document.getElementById("verify-section").style.display = "none";
+        }
+
+        async function verifyCashierCodeAndDownload() {
+            const enteredCode = document.getElementById("verify-cashier-code").value;
+
+            const response = await fetch(`${BASE_URL}/verify-cashier-code`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mobile: customerNumber, cashierCode: enteredCode })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await savePurchase("cash", enteredCode);
+                await generatePDFReceipt();
+                showMessage("✅ Payment verified! Receipt downloaded.", "success");
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                showMessage("❌ " + result.message, "error");
+            }
+        }
+
+        // Online Payment
+        async function handleOnlinePay() {
+            const total = document.getElementById("total-amount").textContent;
+            window.location.href = `upi://pay?pa=merchant@upi&pn=SmartCart&am=${total}&cu=INR`;
+
+            setTimeout(async () => {
+                await savePurchase("online");
+                await generatePDFReceipt();
+                showMessage("✅ Online Payment Successful! Receipt downloaded.", "success");
+                setTimeout(() => window.location.reload(), 2000);
+            }, 3000);
+        }
+
+        // PDF Receipt Generation
+        async function generatePDFReceipt() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(18);
+            doc.text("Smart Cart Receipt", 70, 10);
+            doc.setFontSize(12);
+            doc.text("==========================================", 10, 15);
+
+            let y = 25;
+            doc.text("Barcode     Name      Price   Qty   Total", 10, y);
+            y += 10;
+
+            let grandTotal = 0;
+            for (const [barcode, product] of Object.entries(scannedProducts)) {
+                const line = `${barcode}  ${product.name}  ₹${product.price.toFixed(2)}  ${product.quantity}  ₹${(product.price * product.quantity).toFixed(2)}`;
+                doc.text(line, 10, y);
+                y += 8;
+                grandTotal += product.price * product.quantity;
+            }
+
+            y += 10;
+            doc.text(`Total Amount: ₹${grandTotal.toFixed(2)}`, 10, y);
+            y += 20;
+            doc.text("Thank you for shopping with us!", 50, y);
+            doc.save("receipt.pdf");
+        }
+    </script>
 </body>
 
 </html>
